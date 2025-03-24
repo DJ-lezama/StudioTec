@@ -12,7 +12,6 @@ function Logo() {
             </div>
             <div className="flex flex-col">
                 <h1 className="text-h4 font-heading font-bold leading-tight">Studio Tec</h1>
-                <p className="text-subtitle-m font-body font-normal leading-tight">Belleza que inspira</p>
             </div>
         </div>
     );
