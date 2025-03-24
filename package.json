@@ -1,0 +1,19 @@
+{
+  "name": "studiotech",
+  "version": "1.0.0",
+  "main": "backend/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently \"npm run server --prefix backend\" \"npm run dev --prefix frontend\""
+  },
+  "private": true,
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "concurrently": "^9.1.2"
+  }
+}
