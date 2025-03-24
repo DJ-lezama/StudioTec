@@ -1,6 +1,132 @@
 import Button from "./components/Button";
 import Navbar from "./components/Navbar/Navbar.jsx";
+import RequestCardCarousel from "./components/RequestsVisualizer/RequestCardCarousel.jsx";
+
 function App() {
+    const sampleRequests = [
+        {
+            id: "123456",
+            service: "Limpieza de orzuela + Corte",
+            stylist: "Estilista A",
+            time: "16:40",
+            date: "23 de Marzo de 2025",
+            client: "Alina Porras",
+        },
+        {
+            id: "234567",
+            service: "Limpieza de orzuela + Corte",
+            stylist: "Estilista A",
+            time: "16:40",
+            date: "23 de Marzo de 2025",
+            client: "Alina Porras",
+        },
+        {
+            id: "345678",
+            service: "Limpieza de orzuela ",
+            stylist: "Estilista B",
+            time: "16:40",
+            date: "23 de Marzo de 2025",
+            client: "Alexa Perez",
+        },
+        {
+            id: "123456",
+            service: "Limpieza de orzuela + Corte",
+            stylist: "Estilista A",
+            time: "16:40",
+            date: "23 de Marzo de 2025",
+            client: "Alina Porras",
+        },
+        {
+            id: "234567",
+            service: "Limpieza de orzuela + Corte",
+            stylist: "Estilista A",
+            time: "16:40",
+            date: "23 de Marzo de 2025",
+            client: "Alina Porras",
+        },
+        {
+            id: "345678",
+            service: "Limpieza de orzuela ",
+            stylist: "Estilista B",
+            time: "16:40",
+            date: "23 de Marzo de 2025",
+            client: "Alexa Perez",
+        },
+        {
+            id: "123456",
+            service: "Limpieza de orzuela + Corte",
+            stylist: "Estilista A",
+            time: "16:40",
+            date: "23 de Marzo de 2025",
+            client: "Alina Porras",
+        },
+        {
+            id: "234567",
+            service: "Limpieza de orzuela + Corte",
+            stylist: "Estilista A",
+            time: "16:40",
+            date: "23 de Marzo de 2025",
+            client: "Alina Porras",
+        },
+        {
+            id: "345678",
+            service: "Limpieza de orzuela ",
+            stylist: "Estilista B",
+            time: "16:40",
+            date: "23 de Marzo de 2025",
+            client: "Alexa Perez",
+        },
+        {
+            id: "123456",
+            service: "Limpieza de orzuela + Corte",
+            stylist: "Estilista A",
+            time: "16:40",
+            date: "23 de Marzo de 2025",
+            client: "Alina Porras",
+        },
+        {
+            id: "234567",
+            service: "Limpieza de orzuela + Corte",
+            stylist: "Estilista A",
+            time: "16:40",
+            date: "23 de Marzo de 2025",
+            client: "Alina Porras",
+        },
+        {
+            id: "345678",
+            service: "Limpieza de orzuela ",
+            stylist: "Estilista B",
+            time: "16:40",
+            date: "23 de Marzo de 2025",
+            client: "Alexa Perez",
+        },
+        {
+            id: "123456",
+            service: "Limpieza de orzuela + Corte",
+            stylist: "Estilista A",
+            time: "16:40",
+            date: "23 de Marzo de 2025",
+            client: "Alina Porras",
+        },
+        {
+            id: "234567",
+            service: "Limpieza de orzuela + Corte",
+            stylist: "Estilista A",
+            time: "16:40",
+            date: "23 de Marzo de 2025",
+            client: "Alina Porras",
+        },
+        {
+            id: "345678",
+            service: "Limpieza de orzuela ",
+            stylist: "Estilista B",
+            time: "16:40",
+            date: "23 de Marzo de 2025",
+            client: "Alexa Perez",
+        },
+    ];
+
+
     return (
         <>
             <Navbar/>
@@ -30,7 +156,10 @@ function App() {
                             <Button type="dark">Dark Button</Button>
                             <Button type="transparent">Transparent Button</Button>
                         </div>
+                    </div>
 
+                    <div>
+                        <RequestCardCarousel requests={sampleRequests} />
                     </div>
                 </div>
             </div>
