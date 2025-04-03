@@ -1,9 +1,10 @@
 import React from "react";
 
-function UserProfile() {
+function UserProfile({ className = "ml-6" }) {
     return (
+
         <button
-            className="flex justify-center items-center w-12 h-12 bg-gray-200 rounded-full"
+            className={`flex justify-center items-center w-12 h-12 bg-[#F2F4F8] rounded-full ${className}`}
             aria-label="User profile"
         >
             <img

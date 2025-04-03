@@ -1,2 +1,2 @@
 # StudioTec
-Studio Tec Salon Websote
+Studio Tec Salon Website
