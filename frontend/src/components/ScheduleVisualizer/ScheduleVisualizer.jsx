@@ -11,6 +11,7 @@ import {
     format,
 } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
+import AppointmentDetailsOverlay from "./AppointmentOverlay.jsx";
 
 function getGroupLabel(date) {
     const today = new Date();
@@ -28,6 +29,8 @@ function getGroupLabel(date) {
 function ScheduleVisualizer({ tasks }) {
     const [hiddenGroups, setHiddenGroups] = useState(["Last 30 days", "Last 7 days"]);
     const [showMenu, setShowMenu] = useState(null);
+    const [selectedAppointment, setSelectedAppointment] = useState(null);
+
 
     const grouped = tasks.reduce((acc, task) => {
         const label = getGroupLabel(task.date);
@@ -100,8 +103,12 @@ function ScheduleVisualizer({ tasks }) {
 
                                 <div className="space-y-4 overflow-y-auto px-3 pb-3 max-h-[calc(6*6rem)]">
                                     {grouped[label]?.map((task, i) => (
-                                        <div key={i} className="bg-secondary text-white p-3 rounded-md shadow-md">
-                                            <p className="font-bold text-body-m">{task.title}</p>
+                                        <div
+                                            key={i}
+                                            className="bg-secondary text-white p-3 rounded-md shadow-md cursor-pointer hover:bg-secondary/90 transition-colors"
+                                            onClick={() => setSelectedAppointment(task)}
+                                        >
+                                            <p className="font-bold text-body-m">{task.service}</p>
                                             <p className="text-body-xs">Hora - {task.stylist}</p>
                                             <p className="text-body-xs">Clienta {task.client}</p>
                                             <p className="text-body-xs">{format(parseISO(task.date), "do 'de' MMMM 'de' yyyy")}</p>
@@ -130,6 +137,13 @@ function ScheduleVisualizer({ tasks }) {
                         </div>
                     )}
                 </div>
+            </div>
+            <div>
+                <AppointmentDetailsOverlay
+                    appointment={selectedAppointment}
+                    onClose={() => setSelectedAppointment(null)}
+                />
+
             </div>
         </div>
     );

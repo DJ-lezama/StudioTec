@@ -1,6 +1,7 @@
 // src/components/ReviewsVisualizer/ReviewsCarousel.jsx
 import ReviewCard from "./ReviewCard";
 import { Scissors, Brush } from "lucide-react";
+import React from "react";
 
 const iconMap = {
   scissors: Scissors,
