@@ -2,6 +2,7 @@ import Button from "./components/Button";
 import Navbar from "./components/Navbar/Navbar.jsx";
 import RequestCardCarousel from "./components/RequestsVisualizer/RequestCardCarousel.jsx";
 import ReviewsCarousel from "./components/ReviewsVisualizer/ReviewsCarousel.jsx";
+import ScheduleVisualizer from "./components/ScheduleVisualizer/ScheduleVisualizer.jsx";
 
 function App() {
   const sampleRequests = [
@@ -197,6 +198,147 @@ function App() {
     },
   ];
 
+  const mock_appointments = [
+    {
+      title: "Limpieza de orzuela + Corte",
+      stylist: "Estilista 1",
+      client: "Clienta A",
+      date: "2025-04-06" // ISO format
+    },
+    {
+      title: "Corte",
+      stylist: "Estilista 2",
+      client: "Clienta 3",
+      date: "2025-05-06" // ISO format
+    },
+
+    // AYER
+    {
+      title: "Limpieza de orzuela + Corte",
+      stylist: "Estilista 1",
+      client: "Clienta A",
+      date: "2025-04-04",
+    },
+
+    // HOY
+    {
+      title: "Mascarilla hidratante",
+      stylist: "Estilista 2",
+      client: "Clienta B",
+      date: "2025-04-05",
+    },
+    {
+      title: "Corte clásico",
+      stylist: "Estilista 1",
+      client: "Clienta C",
+      date: "2025-04-05",
+    },
+
+    // ESTA SEMANA (up to April 11)
+    {
+      title: "Coloración completa",
+      stylist: "Estilista 3",
+      client: "Clienta D",
+      date: "2025-04-08",
+    },
+    {
+      title: "Peinado de evento",
+      stylist: "Estilista 2",
+      client: "Clienta E",
+      date: "2025-04-10",
+    },
+
+    // PRÓXIMOS 30 DÍAS
+    {
+      title: "Corte + Tratamiento",
+      stylist: "Estilista 1",
+      client: "Clienta F",
+      date: "2025-04-18",
+    },
+    {
+      title: "Uñas gelish",
+      stylist: "Estilista 2",
+      client: "Clienta G",
+      date: "2025-04-22",
+    },
+    {
+      title: "Peinado + Limpieza de orzuela",
+      stylist: "Estilista 1",
+      client: "Clienta H",
+      date: "2025-05-01",
+    },
+
+    // MAYO (beyond 30 days)
+    {
+      title: "Corte en capas",
+      stylist: "Estilista 3",
+      client: "Clienta I",
+      date: "2025-05-14",
+    },
+    {
+      title: "Color fantasía",
+      stylist: "Estilista 2",
+      client: "Clienta J",
+      date: "2025-05-22",
+    },
+    {
+      title: "Corte en capas",
+      stylist: "Estilista 3",
+      client: "Clienta I",
+      date: "2025-05-14",
+    },
+    {
+      title: "Color fantasía",
+      stylist: "Estilista 2",
+      client: "Clienta J",
+      date: "2025-05-22",
+    },
+    {
+      title: "Corte en capas",
+      stylist: "Estilista 3",
+      client: "Clienta I",
+      date: "2025-05-14",
+    },
+    {
+      title: "Color fantasía",
+      stylist: "Estilista 2",
+      client: "Clienta J",
+      date: "2025-05-22",
+    },
+    {
+      title: "Corte en capas",
+      stylist: "Estilista 3",
+      client: "Clienta I",
+      date: "2025-05-14",
+    },
+    {
+      title: "Color fantasía",
+      stylist: "Estilista 2",
+      client: "Clienta J",
+      date: "2025-05-22",
+    },
+    {
+      title: "Corte en capas",
+      stylist: "Estilista 3",
+      client: "Clienta I",
+      date: "2025-05-14",
+    },
+    {
+      title: "Color fantasía",
+      stylist: "Estilista 2",
+      client: "Clienta J",
+      date: "2025-05-22",
+    },
+
+    // JUNIO
+    {
+      title: "Mascarilla de nutrición",
+      stylist: "Estilista 1",
+      client: "Clienta K",
+      date: "2025-06-03",
+    },
+]
+
   return (
     <>
       <Navbar />
@@ -235,6 +377,12 @@ function App() {
           <div>
             <section>
               <ReviewsCarousel reviews={mockReviews} />
+            </section>
+          </div>
+
+          <div>
+            <section>
+              <ScheduleVisualizer tasks={mock_appointments} />
             </section>
           </div>
         </div>
