@@ -11,6 +11,8 @@ import {
 } from "react-router-dom";
 import DashboardScreen from "./screens/StylistScreens/DashboardScreen";
 import ScheduleScreen from "./screens/StylistScreens/ScheduleScreen";
+import ClientsScreen from "./screens/StylistScreens/ClientsScreen";
+import RequestsScreen from "./screens/StylistScreens/RequestsScreen.jsx";
 
 function App() {
   const sampleRequests = [
@@ -252,6 +254,8 @@ function App() {
         />
         <Route path="/stylist/dashboard" element={<DashboardScreen />} />
         <Route path="/stylist/schedule" element={<ScheduleScreen />} />
+        <Route path="/stylist/clientes" element={<ClientsScreen />} />
+        <Route path="/stylist/solicitudes" element={<RequestsScreen />} />
         <Route path="*" element={<h1>Página no encontrada</h1>} />
       </Routes>
     </Router>
