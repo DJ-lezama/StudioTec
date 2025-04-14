@@ -71,7 +71,7 @@ function ReviewsSection() {
     return (
         <section className="w-full py-20 px-6 sm:px-10 md:px-16 lg:px-24">
             <div className="max-w-7xl mx-auto flex flex-col gap-10">
-                <h2 className="text-h2 text-textMain font-heading font-medium text-center">
+                <h2 className="text-h2 text-textMain font-heading font-bold text-center">
                     Lo que opinan nuestras clientas
                 </h2>
 

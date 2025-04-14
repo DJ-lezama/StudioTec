@@ -1,0 +1,36 @@
+# === Archivos de texto comunes ===
+* text=auto
+
+# === JavaScript / TypeScript ===
+*.js   text eol=lf
+*.jsx  text eol=lf
+*.ts   text eol=lf
+*.tsx  text eol=lf
+
+# === Estilos y HTML ===
+*.css  text eol=lf
+*.scss text eol=lf
+*.sass text eol=lf
+*.html text eol=lf
+*.svg  text eol=lf
+
+# === Configuración y datos ===
+*.json text eol=lf
+*.md   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.env  text eol=lf
+*.gitignore text eol=lf
+*.gitattributes text eol=lf
+
+# === Archivos de build (binarios / no convertir) ===
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.ttf  binary
+*.woff binary
+*.woff2 binary
+*.eot  binary

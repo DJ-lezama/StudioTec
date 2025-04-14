@@ -56,7 +56,7 @@ function ReviewsCarousel({ reviews }) {
             <button
                 onClick={handleNext}
                 disabled={currentIndex >= maxIndex}
-                className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 z-10 bg-white rounded-full p-2 shadow-md focus:outline-none ${
+                className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-7 z-10 bg-white rounded-full p-2 shadow-md focus:outline-none ${
                     currentIndex >= maxIndex ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
                 }`}
                 aria-label="Ver siguiente reseña"
