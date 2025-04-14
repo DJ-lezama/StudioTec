@@ -5,7 +5,8 @@ import UserProfile from "./UserProfile";
 
 function Navbar() {
   return (
-    <header className="flex items-center justify-between px-8 py-4 bg-white border-b border-textMain">
+      <header className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-8 py-4 bg-white shadow-sm">
+
       <div className="flex items-center justify-between w-full">
         <Logo />
         <NavMenu />
