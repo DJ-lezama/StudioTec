@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import Button from "../common/Button.jsx";
+import RequestReviewOverlay from "../StylistDashboard/RequestReviewOverlay.jsx";
 
-function RequestCard({ id, service, stylist, time, date, client }) {
+function RequestCard({ id, service, stylist, time, date, client, onClick }) {
+  const [selectedRequest, setSelectedRequest] = useState(null);
+
   return (
     <div className="relative bg-white rounded-xl shadow-md p-6 flex justify-between items-center border border-gray-200 overflow-hidden">
       {/* Left stripe */}
@@ -22,8 +25,14 @@ function RequestCard({ id, service, stylist, time, date, client }) {
         <p className="text-body-s text-textMain/70">Cliente: {client}</p>
       </div>
       <div className="ml-4">
-        <Button type="dark">Revisar solicitud</Button>
+        <Button type="dark" onClick={onClick}>
+          Revisar solicitud
+        </Button>
       </div>
+      <RequestReviewOverlay
+        request={selectedRequest}
+        onClose={() => setSelectedRequest(null)}
+      />
     </div>
   );
 }

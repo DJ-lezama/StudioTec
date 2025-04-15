@@ -1,6 +1,5 @@
 import Button from "./components/common/Button.jsx";
 import Navbar from "./components/Navbar/Navbar.jsx";
-import RequestCardCarousel from "./components/RequestsVisualizer/RequestCardCarousel.jsx";
 import ReviewsCarousel from "./components/ReviewsVisualizer/ReviewsCarousel.jsx";
 import React from "react";
 import {
@@ -13,132 +12,9 @@ import DashboardScreen from "./screens/StylistScreens/DashboardScreen";
 import ScheduleScreen from "./screens/StylistScreens/ScheduleScreen";
 import ClientsScreen from "./screens/StylistScreens/ClientsScreen";
 import RequestsScreen from "./screens/StylistScreens/RequestsScreen.jsx";
+import ManageServicesScreen from "./screens/StylistScreens/ManageServicesScreen.jsx";
 
 function App() {
-  const sampleRequests = [
-    {
-      imageSrc: "https://randomuser.me/api/portraits/women/45.jpg",
-      id: "123456",
-      service: "Limpieza de orzuela + Corte",
-      stylist: "Estilista A",
-      time: "16:40",
-      date: "23 de Marzo de 2025",
-      client: "Alina Porras",
-    },
-    {
-      id: "234567",
-      service: "Limpieza de orzuela + Corte",
-      stylist: "Estilista A",
-      time: "16:40",
-      date: "23 de Marzo de 2025",
-      client: "Alina Porras",
-    },
-    {
-      id: "345678",
-      service: "Limpieza de orzuela ",
-      stylist: "Estilista B",
-      time: "16:40",
-      date: "23 de Marzo de 2025",
-      client: "Alexa Perez",
-    },
-    {
-      id: "123456",
-      service: "Limpieza de orzuela + Corte",
-      stylist: "Estilista A",
-      time: "16:40",
-      date: "23 de Marzo de 2025",
-      client: "Alina Porras",
-    },
-    {
-      id: "234567",
-      service: "Limpieza de orzuela + Corte",
-      stylist: "Estilista A",
-      time: "16:40",
-      date: "23 de Marzo de 2025",
-      client: "Alina Porras",
-    },
-    {
-      id: "345678",
-      service: "Limpieza de orzuela ",
-      stylist: "Estilista B",
-      time: "16:40",
-      date: "23 de Marzo de 2025",
-      client: "Alexa Perez",
-    },
-    {
-      id: "123456",
-      service: "Limpieza de orzuela + Corte",
-      stylist: "Estilista A",
-      time: "16:40",
-      date: "23 de Marzo de 2025",
-      client: "Alina Porras",
-    },
-    {
-      id: "234567",
-      service: "Limpieza de orzuela + Corte",
-      stylist: "Estilista A",
-      time: "16:40",
-      date: "23 de Marzo de 2025",
-      client: "Alina Porras",
-    },
-    {
-      id: "345678",
-      service: "Limpieza de orzuela ",
-      stylist: "Estilista B",
-      time: "16:40",
-      date: "23 de Marzo de 2025",
-      client: "Alexa Perez",
-    },
-    {
-      id: "123456",
-      service: "Limpieza de orzuela + Corte",
-      stylist: "Estilista A",
-      time: "16:40",
-      date: "23 de Marzo de 2025",
-      client: "Alina Porras",
-    },
-    {
-      id: "234567",
-      service: "Limpieza de orzuela + Corte",
-      stylist: "Estilista A",
-      time: "16:40",
-      date: "23 de Marzo de 2025",
-      client: "Alina Porras",
-    },
-    {
-      id: "345678",
-      service: "Limpieza de orzuela ",
-      stylist: "Estilista B",
-      time: "16:40",
-      date: "23 de Marzo de 2025",
-      client: "Alexa Perez",
-    },
-    {
-      id: "123456",
-      service: "Limpieza de orzuela + Corte",
-      stylist: "Estilista A",
-      time: "16:40",
-      date: "23 de Marzo de 2025",
-      client: "Alina Porras",
-    },
-    {
-      id: "234567",
-      service: "Limpieza de orzuela + Corte",
-      stylist: "Estilista A",
-      time: "16:40",
-      date: "23 de Marzo de 2025",
-      client: "Alina Porras",
-    },
-    {
-      id: "345678",
-      service: "Limpieza de orzuela ",
-      stylist: "Estilista B",
-      time: "16:40",
-      date: "23 de Marzo de 2025",
-      client: "Alexa Perez",
-    },
-  ];
-
   const mockReviews = [
     {
       id: 1,
@@ -239,8 +115,6 @@ function App() {
                   <Button type="dark">Dark Button</Button>
                   <Button type="transparent">Transparent Button</Button>
                 </div>
-
-                <RequestCardCarousel requests={sampleRequests} />
                 <ReviewsCarousel reviews={mockReviews} />
 
                 <li>
@@ -256,6 +130,7 @@ function App() {
         <Route path="/stylist/schedule" element={<ScheduleScreen />} />
         <Route path="/stylist/clientes" element={<ClientsScreen />} />
         <Route path="/stylist/solicitudes" element={<RequestsScreen />} />
+        <Route path="/stylist/servicios" element={<ManageServicesScreen />} />
         <Route path="*" element={<h1>Página no encontrada</h1>} />
       </Routes>
     </Router>

@@ -3,33 +3,134 @@ import React, { useState } from "react";
 import RequestReviewOverlay from "../../components/StylistDashboard/RequestReviewOverlay.jsx";
 import Button from "../../components/common/Button.jsx";
 import { useNavigate } from "react-router-dom";
+import RequestCardCarousel from "../../components/RequestsVisualizer/RequestCardCarousel.jsx";
 
-const mockRequests = [
+const sampleRequests = [
   {
+    imageSrc: "https://randomuser.me/api/portraits/women/45.jpg",
     id: "123456",
-    date: "2025-04-18",
-    time: "15:00",
-    service: "Coloración",
-    stylist: "Estilista 1",
-    clientName: "Valeria Mendoza",
-    hairImage: "https://images.unsplash.com/photo-1559599078-0bcb85b4e3c3",
-    referenceImage:
-      "https://images.unsplash.com/photo-1605379399642-870262d3d051",
+    service: "Limpieza de orzuela + Corte",
+    stylist: "Estilista A",
+    time: "16:40",
+    date: "23 de Marzo de 2025",
+    client: "Alina Porras",
   },
   {
-    id: "789012",
-    date: "2025-04-22",
-    time: "12:30",
-    service: "Peinado",
-    stylist: "Estilista 2",
-    clientName: "Laura Rivas",
-    hairImage: "https://images.unsplash.com/photo-1600180758890-6c861b6b2c7b",
-    referenceImage:
-      "https://images.unsplash.com/photo-1594824476967-48c8b9642738",
+    id: "234567",
+    service: "Limpieza de orzuela + Corte",
+    stylist: "Estilista A",
+    time: "16:40",
+    date: "23 de Marzo de 2025",
+    client: "Alina Porras",
+  },
+  {
+    id: "345678",
+    service: "Limpieza de orzuela ",
+    stylist: "Estilista B",
+    time: "16:40",
+    date: "23 de Marzo de 2025",
+    client: "Alexa Perez",
+  },
+  {
+    id: "123456",
+    service: "Limpieza de orzuela + Corte",
+    stylist: "Estilista A",
+    time: "16:40",
+    date: "23 de Marzo de 2025",
+    client: "Alina Porras",
+  },
+  {
+    id: "234567",
+    service: "Limpieza de orzuela + Corte",
+    stylist: "Estilista A",
+    time: "16:40",
+    date: "23 de Marzo de 2025",
+    client: "Alina Porras",
+  },
+  {
+    id: "345678",
+    service: "Limpieza de orzuela ",
+    stylist: "Estilista B",
+    time: "16:40",
+    date: "23 de Marzo de 2025",
+    client: "Alexa Perez",
+  },
+  {
+    id: "123456",
+    service: "Limpieza de orzuela + Corte",
+    stylist: "Estilista A",
+    time: "16:40",
+    date: "23 de Marzo de 2025",
+    client: "Alina Porras",
+  },
+  {
+    id: "234567",
+    service: "Limpieza de orzuela + Corte",
+    stylist: "Estilista A",
+    time: "16:40",
+    date: "23 de Marzo de 2025",
+    client: "Alina Porras",
+  },
+  {
+    id: "345678",
+    service: "Limpieza de orzuela ",
+    stylist: "Estilista B",
+    time: "16:40",
+    date: "23 de Marzo de 2025",
+    client: "Alexa Perez",
+  },
+  {
+    id: "123456",
+    service: "Limpieza de orzuela + Corte",
+    stylist: "Estilista A",
+    time: "16:40",
+    date: "23 de Marzo de 2025",
+    client: "Alina Porras",
+  },
+  {
+    id: "234567",
+    service: "Limpieza de orzuela + Corte",
+    stylist: "Estilista A",
+    time: "16:40",
+    date: "23 de Marzo de 2025",
+    client: "Alina Porras",
+  },
+  {
+    id: "345678",
+    service: "Limpieza de orzuela ",
+    stylist: "Estilista B",
+    time: "16:40",
+    date: "23 de Marzo de 2025",
+    client: "Alexa Perez",
+  },
+  {
+    id: "123456",
+    service: "Limpieza de orzuela + Corte",
+    stylist: "Estilista A",
+    time: "16:40",
+    date: "23 de Marzo de 2025",
+    client: "Alina Porras",
+  },
+  {
+    id: "234567",
+    service: "Limpieza de orzuela + Corte",
+    stylist: "Estilista A",
+    time: "16:40",
+    date: "23 de Marzo de 2025",
+    client: "Alina Porras",
+  },
+  {
+    id: "345678",
+    service: "Limpieza de orzuela ",
+    stylist: "Estilista B",
+    time: "16:40",
+    date: "23 de Marzo de 2025",
+    client: "Alexa Perez",
   },
 ];
 
 const RequestsScreen = () => {
+  const [requests, setRequests] = useState(sampleRequests);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const navigate = useNavigate();
 
@@ -42,25 +143,10 @@ const RequestsScreen = () => {
         </Button>
       </div>
 
-      <div className="space-y-4">
-        {mockRequests.map((req) => (
-          <div
-            key={req.id}
-            className="bg-white hover:bg-secondary/10 cursor-pointer p-4 rounded-lg shadow-sm flex justify-between items-center"
-            onClick={() => setSelectedRequest(req)}
-          >
-            <div>
-              <p className="font-semibold text-textMain">
-                Información de solicitud
-              </p>
-              <p className="text-sm text-textMain/60">
-                {req.service} - {req.date} - {req.time}
-              </p>
-            </div>
-            <span className="text-xl text-textMain">&rarr;</span>
-          </div>
-        ))}
-      </div>
+      <RequestCardCarousel
+        requests={requests}
+        onCardClick={setSelectedRequest}
+      />
 
       <RequestReviewOverlay
         request={selectedRequest}
