@@ -1,7 +1,7 @@
 import Button from "./components/common/Button.jsx";
 import Navbar from "./components/Navbar/Navbar.jsx";
 import ReviewsCarousel from "./components/ReviewsVisualizer/ReviewsCarousel.jsx";
-import React from "react";
+import React, {useState} from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -13,76 +13,10 @@ import ScheduleScreen from "./screens/StylistScreens/ScheduleScreen";
 import ClientsScreen from "./screens/StylistScreens/ClientsScreen";
 import RequestsScreen from "./screens/StylistScreens/RequestsScreen.jsx";
 import ManageServicesScreen from "./screens/StylistScreens/ManageServicesScreen.jsx";
+import ManageReviewsScreen from "./screens/StylistScreens/ManageReviewsScreen";
 
 function App() {
-  const mockReviews = [
-    {
-      id: 1,
-      name: "María Treviño",
-      review: "Excelente servicio, me encanta la atención que te dan",
-      icon: "scissors",
-      rating: 5,
-      image: "https://randomuser.me/api/portraits/women/65.jpg",
-    },
-    {
-      id: 2,
-      name: "Grecia González",
-      review:
-        "¡Súper! Me hicieron un peinado rapidísimo y llegué a mi evento a tiempo",
-      icon: "brush",
-      rating: 5,
-      image: "https://randomuser.me/api/portraits/women/56.jpg",
-    },
-    {
-      id: 3,
-      name: "Fernanda López",
-      review: "Quedé encantada con el resultado, sin duda volveré",
-      icon: "scissors",
-      rating: 4,
-      image: "https://randomuser.me/api/portraits/women/45.jpg",
-    },
-    {
-      id: 4,
-      name: "Valentina Martínez",
-      review: "El ambiente es súper lindo y el trato increíble",
-      icon: "brush",
-      rating: 5,
-      image: "https://randomuser.me/api/portraits/women/32.jpg",
-    },
-    {
-      id: 6,
-      name: "María Treviño",
-      review: "Excelente servicio, me encanta la atención que te dan",
-      icon: "scissors",
-      rating: 5,
-      image: "https://randomuser.me/api/portraits/women/65.jpg",
-    },
-    {
-      id: 7,
-      name: "Grecia González",
-      review:
-        "¡Súper! Me hicieron un peinado rapidísimo y llegué a mi evento a tiempo",
-      icon: "brush",
-      rating: 5,
-      image: "https://randomuser.me/api/portraits/women/56.jpg",
-    },
-    {
-      id: 8,
-      name: "Fernanda López",
-      review: "Quedé encantada con el resultado, sin duda volveré",
-      icon: "scissors",
-      rating: 4,
-      image: "https://randomuser.me/api/portraits/women/45.jpg",
-    },
-    {
-      id: 9,
-      name: "Valentina Martínez",
-      review: "El ambiente es súper lindo y el trato increíble",
-      icon: "brush",
-      rating: 5,
-      image: "https://randomuser.me/api/portraits/women/32.jpg",
-    },
-  ];
+  const [featuredReviews, setFeaturedReviews] = useState([]);
 
   return (
     <Router>
@@ -115,8 +49,7 @@ function App() {
                   <Button type="dark">Dark Button</Button>
                   <Button type="transparent">Transparent Button</Button>
                 </div>
-                <ReviewsCarousel reviews={mockReviews} />
-
+                <ReviewsCarousel reviews={featuredReviews} />
                 <li>
                   <NavLink to="/stylist/dashboard" className="hover:underline">
                     Dashboard
@@ -131,6 +64,15 @@ function App() {
         <Route path="/stylist/clientes" element={<ClientsScreen />} />
         <Route path="/stylist/solicitudes" element={<RequestsScreen />} />
         <Route path="/stylist/servicios" element={<ManageServicesScreen />} />
+        <Route
+            path="/stylist/reviews"
+            element={
+              <ManageReviewsScreen
+                  selectedReviews={featuredReviews}
+                  onSaveSelected={setFeaturedReviews}
+              />
+            }
+        />
         <Route path="*" element={<h1>Página no encontrada</h1>} />
       </Routes>
     </Router>
