@@ -1,10 +1,10 @@
 import React from 'react';
-import serviceImage from '../assets/1.png';
-import qualityImage from '../assets/2.png';
-import paymentImage from '../assets/3.png';
-import ScissorIcon from '../assets/BrushIcon';
-import StylistIcon from '../assets/PersonIcon';
-import PaymentIcon from '../assets/PaymentIcon';
+import serviceImage from '../../assets/1.png';
+import qualityImage from '../../assets/2.png';
+import paymentImage from '../../assets/3.png';
+import ScissorIcon from '../../assets/BrushIcon';
+import StylistIcon from '../../assets/PersonIcon';
+import PaymentIcon from '../../assets/PaymentIcon';
 
 function CharacteristicsGrid() {
     return (
