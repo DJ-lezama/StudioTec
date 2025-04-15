@@ -9,7 +9,7 @@ const SchedulePreview = ({ appointments, onClick }) => {
       </h2>
       <div className="space-y-2 max-h-[44rem] overflow-y-auto pr-1">
         {appointments.map((appt, index) => (
-          <div key={index} className="bg-primary text-textMain p-3 rounded-md">
+          <div key={index} className="bg-secondary text-white p-3 rounded-md">
             <p className="font-bold">{appt.service}</p>
             <p>Hora - {appt.stylist}</p>
             <p>Clienta {appt.client}</p>

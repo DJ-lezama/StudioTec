@@ -1,7 +1,7 @@
 import React from "react";
 import RequestCard from "./RequestCard";
 
-function RequestCardCarousel({ requests }) {
+function RequestCardCarousel({ requests, onCardClick }) {
   return (
     <div className="space-y-5 max-h-[80vh] overflow-y-auto pr-2">
       <h2 className="text-h2 font-heading text-textMain font-medium">
@@ -16,6 +16,7 @@ function RequestCardCarousel({ requests }) {
           time={request.time}
           date={request.date}
           client={request.client}
+          onClick={() => onCardClick(request)}
         />
       ))}
     </div>
