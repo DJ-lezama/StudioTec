@@ -115,13 +115,12 @@ const OurSpaces = () => {
     };
 
     return (
-        <section className="w-full py-20 bg-gradient-to-b from-white to-gray-50 overflow-hidden">
+        <section className="w-full py-20 bg-gradient-to-b  overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Encabezado elegante con animación sutil */}
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl font-bold text-textMain mb-6 relative inline-block">
-                        Nuestras Instalaciones
-                        <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-primary"></span>
+                    <h2 className="text-h2 font-bold text-textMain mb-6 relative inline-block">
+                        Nuestras instalaciones
                     </h2>
                     <p className="text-xl text-textMain max-w-3xl mx-auto mt-6">
                         Conoce los espacios que hemos diseñado pensando en tu comodidad y en ofrecerte la mejor experiencia.
@@ -201,6 +200,7 @@ const OurSpaces = () => {
                                         </svg>
                                     </button>
                                 </div>
+
                             </div>
                         ))}
                     </div>
@@ -222,12 +222,6 @@ const OurSpaces = () => {
                     </div>
                 </div>
 
-                {/* Botón CTA para reservar */}
-                <div className="mt-16 text-center">
-                    <button className="px-8 py-3 bg-relevantButton text-white rounded-full text-lg font-medium hover:brightness-110 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                        Reserva tu cita ahora
-                    </button>
-                </div>
             </div>
 
             {/* Modal de lightbox para vista ampliada */}

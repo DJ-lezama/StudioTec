@@ -2,15 +2,15 @@ import React, { useState } from "react";
 import { Scissors, Hand, Eye } from "lucide-react";
 
 // Importación de componentes
-import ServiceCard from "./ServiceCard";
-import CategoryIcon from "./CategoryIcon";
-import SearchBar from "./SearchBar";
-import EmptyState from "./EmptyState";
-import CategoryHeader from "./CategoryHeader";
-import PromoSection from "./PromoSection";
+import ServiceCard from "../../components/CatalogComponents/ServiceCard.jsx";
+import CategoryIcon from "../../components/CatalogComponents/CategoryIcon";
+import SearchBar from "../../components/CatalogComponents/SearchBar";
+import EmptyState from "../../components/CatalogComponents/EmptyState";
+import CategoryHeader from "../../components/CatalogComponents/CategoryHeader";
+import PromoSection from "../../components/CatalogComponents/PromoSection";
 
 // Importación de datos
-import catalogData, { categoryConfig as configData } from "./catalogData";
+import catalogData, { categoryConfig as configData } from "../../components/CatalogComponents/catalogData.js";
 
 /**
  * Componente principal para la pantalla de catálogo

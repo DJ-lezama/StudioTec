@@ -23,11 +23,11 @@ export const AuthProvider = ({ children }) => {
         checkUser();
     }, []);
 
-    // Función de login - En una implementación real, esto se conectaría a tu backend
+    // Función de login - Ahora con soporte para estilista
     const login = (email, password) => {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
-                // Simulamos una verificación de credenciales
+                // Verificar credenciales de cliente
                 if (email === "test@example.com" && password === "password") {
                     const user = {
                         id: "1",
@@ -36,18 +36,31 @@ export const AuthProvider = ({ children }) => {
                         role: "client",
                     };
 
-                    // Guardar el usuario en localStorage para persistencia
                     localStorage.setItem("studioTecUser", JSON.stringify(user));
                     setCurrentUser(user);
-                    resolve(user);
-                } else {
+                    resolve({ user, redirectTo: "/" });
+                }
+                // Verificar credenciales de estilista
+                else if (email === "estilista@studiotec.mx" && password === "estilista123") {
+                    const user = {
+                        id: "2",
+                        name: "Estilista Demo",
+                        email,
+                        role: "stylist",
+                    };
+
+                    localStorage.setItem("studioTecUser", JSON.stringify(user));
+                    setCurrentUser(user);
+                    resolve({ user, redirectTo: "/stylist/dashboard" }); // Redirigir al dashboard
+                }
+                else {
                     reject(new Error("Credenciales incorrectas"));
                 }
             }, 1000);
         });
     };
 
-    // Función de registro - En una implementación real, esto se conectaría a tu backend
+    // El resto de las funciones permanecen iguales
     const register = (name, email, password) => {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
@@ -59,7 +72,6 @@ export const AuthProvider = ({ children }) => {
                     role: "client",
                 };
 
-                // Guardar el usuario en localStorage para persistencia
                 localStorage.setItem("studioTecUser", JSON.stringify(user));
                 setCurrentUser(user);
                 resolve(user);
@@ -67,7 +79,6 @@ export const AuthProvider = ({ children }) => {
         });
     };
 
-    // Función de logout
     const logout = () => {
         localStorage.removeItem("studioTecUser");
         setCurrentUser(null);

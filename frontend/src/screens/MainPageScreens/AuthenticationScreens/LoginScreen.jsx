@@ -22,8 +22,11 @@ function LoginScreen({ onSwitch }) {
         setError("");
 
         try {
-            await login(form.email, form.password);
-            navigate("/"); // Redirige al inicio después del login exitoso
+            // La función login ahora retorna un objeto con el usuario y la ruta de redirección
+            const { redirectTo } = await login(form.email, form.password);
+
+            // Redirigir al usuario a la ruta correspondiente según su rol
+            navigate(redirectTo);
         } catch (err) {
             setError("Error al iniciar sesión. Verifica tus credenciales.");
             console.error(err);
@@ -32,11 +35,19 @@ function LoginScreen({ onSwitch }) {
         }
     };
 
-    // Credenciales de prueba para facilitar las demos
-    const fillTestCredentials = () => {
+    // Función para usar credenciales de cliente
+    const fillClientCredentials = () => {
         setForm({
             email: "test@example.com",
             password: "password"
+        });
+    };
+
+    // Función para usar credenciales de estilista
+    const fillStylistCredentials = () => {
+        setForm({
+            email: "estilista@studiotec.mx",
+            password: "estilista123"
         });
     };
 
@@ -84,13 +95,20 @@ function LoginScreen({ onSwitch }) {
                         />
                     </div>
 
-                    <div className="flex justify-end">
+                    <div className="flex justify-between">
                         <button
                             type="button"
                             className="text-sm text-secondary hover:underline"
-                            onClick={fillTestCredentials}
+                            onClick={fillClientCredentials}
                         >
-                            Usar credenciales de prueba
+                            Cliente de prueba
+                        </button>
+                        <button
+                            type="button"
+                            className="text-sm text-secondary hover:underline"
+                            onClick={fillStylistCredentials}
+                        >
+                            Estilista de prueba
                         </button>
                     </div>
 
