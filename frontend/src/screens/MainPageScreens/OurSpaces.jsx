@@ -10,7 +10,6 @@ const OurSpaces = () => {
     const [lightboxIndex, setLightboxIndex] = useState(0);
     const [autoplay, setAutoplay] = useState(true);
 
-    // Datos de las instalaciones - puedes agregar más imágenes aquí
     const instalaciones = [
         {
             id: 1,
@@ -52,7 +51,6 @@ const OurSpaces = () => {
         }
     ];
 
-    // Efecto para el autoplay
     useEffect(() => {
         let interval;
         if (autoplay && !isModalOpen) {
@@ -113,7 +111,7 @@ const OurSpaces = () => {
     };
 
     return (
-        <section className="w-full py-20 bg-gradient-to-b  overflow-hidden">
+        <section className="w-full bg-gradient-to-b  overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Encabezado elegante con animación sutil */}
                 <div className="text-center mb-16">

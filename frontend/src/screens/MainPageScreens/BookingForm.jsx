@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import Button from "../../components/common/Button";
+import { useNavigate } from "react-router-dom";
 import catalogData, { categoryConfig } from "../../components/CatalogComponents/catalogData";
+
 
 const stylists = [
     { id: "stylistA", name: "Estilista A" },
@@ -29,6 +31,8 @@ function BookingForm() {
         phone: "",
         comments: "",
     });
+    const navigate = useNavigate();
+
 
     const nextStep = () => setStep(step + 1);
     const prevStep = () => setStep(step - 1);
@@ -46,7 +50,7 @@ function BookingForm() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        alert("¡Reserva completada!");
+        navigate("/confirmacion");
         setFormData({
             category: "",
             serviceId: "",
@@ -85,7 +89,7 @@ function BookingForm() {
                                     key={key}
                                     className={`p-4 border rounded-lg cursor-pointer ${
                                         formData.category === key
-                                            ? "border-secondary bg-primary"
+                                            ? "border-secondary bg-background"
                                             : "border-gray-300 hover:border-secondary"
                                     }`}
                                     onClick={() => setFormData({ ...formData, category: key, serviceId: "" })}
@@ -110,7 +114,7 @@ function BookingForm() {
                                             key={service.id}
                                             className={`p-4 border rounded-lg cursor-pointer ${
                                                 formData.serviceId === service.id
-                                                    ? "border-secondary bg-primary"
+                                                    ? "border-secondary bg-background"
                                                     : "border-gray-300 hover:border-secondary"
                                             }`}
                                             onClick={() => setFormData({ ...formData, serviceId: service.id })}
@@ -146,7 +150,7 @@ function BookingForm() {
                                     key={stylist.id}
                                     className={`p-4 border rounded-lg cursor-pointer transition-colors duration-200 ${
                                         formData.stylistId === stylist.id
-                                            ? "border-secondary bg-primary"
+                                            ? "border-secondary bg-background"
                                             : "border-gray-200 hover:border-secondary hover:bg-primary/30"
                                     }`}
                                     onClick={() => setFormData({...formData, stylistId: stylist.id})}
@@ -204,7 +208,7 @@ function BookingForm() {
                                                 key={time}
                                                 className={`p-2 text-center border rounded-lg cursor-pointer transition-colors duration-200 ${
                                                     formData.time === time
-                                                        ? "border-secondary bg-primary"
+                                                        ? "border-secondary bg-background"
                                                         : "border-gray-200 hover:border-secondary hover:bg-primary/30"
                                                 }`}
                                                 onClick={() => setFormData({...formData, time})}

@@ -29,6 +29,7 @@ import CatalogPage from "./CatalogMainScreen.jsx";
 import BookingPage from "./BookingScreen.jsx";
 import ProfileScreen from "./screens/MainPageScreens/ProfileScreen.jsx";
 import CustomVisitForm from "./screens/MainPageScreens/CustomVisitForm.jsx";
+import BookingConfirmation from "./screens/MainPageScreens/BookingConfirmation.jsx";
 // Panel de estilista
 import DashboardScreen from "./screens/StylistScreens/DashboardScreen";
 import ScheduleScreen from "./screens/StylistScreens/ScheduleScreen";
@@ -68,6 +69,8 @@ createRoot(document.getElementById("root")).render(
                     <Route path="/catalogo" element={<CatalogPage />} />
                     <Route path="/agendar" element={<BookingPage />} />
                     <Route path="/consulta" element={<CustomVisitForm />} />
+                    <Route path="/confirmacion" element={<BookingConfirmation />} />
+
 
                     {/* Ruta de autenticación */}
                     <Route path="/auth" element={<AuthScreen />} />

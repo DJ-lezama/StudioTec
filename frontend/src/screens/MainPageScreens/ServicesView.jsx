@@ -44,16 +44,16 @@ const ServicesView = () => {
     ];
 
     return (
-        <section className="w-full bg-white py-16">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="w-full bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
                 <div className="text-center mb-16">
-                    <h2 className="text-h2 font-bold text-[#60182D] mb-6">Nuestros servicios</h2>
-                    <p className="text-xl text-[#3B0A20] max-w-3xl mx-auto">
+                    <h2 className="text-h2 font-bold text-textMain mb-6">Nuestros servicios</h2>
+                    <p className="text-xl text-textMain max-w-3xl mx-auto">
                         Cada servicio es una experiencia pensada para ti, combinando técnica, creatividad y productos de alta calidad.
                     </p>
                 </div>
 
-                <div className="bg-[#60182D] rounded-[40px] p-8 sm:p-12 shadow-xl">
+                <div className="bg-textMain rounded-[40px] p-2 sm:p-8 shadow-xl">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {servicios.map((servicio) => (
                             <div
@@ -70,11 +70,11 @@ const ServicesView = () => {
                                             className="w-full h-[400px] object-cover transition-transform duration-500 group-hover:scale-105"
                                         />
 
-                                        <div className={`absolute inset-0 bg-gradient-to-t from-[#3B0A20] to-transparent opacity-0 group-hover:opacity-90 transition-opacity duration-300 flex flex-col justify-end p-6`}>
+                                        <div className={`absolute inset-0 bg-gradient-to-t from-textMain to-transparent opacity-0 group-hover:opacity-90 transition-opacity duration-300 flex flex-col justify-end p-6`}>
                                             <h3 className="text-2xl font-bold text-white mb-2">{servicio.nombre}</h3>
                                             <p className="text-white/90 mb-4">{servicio.descripcion}</p>
                                             <div className="flex justify-between items-center">
-                                                <span className="text-[#FAD4E3] text-lg font-semibold">{servicio.precio}</span>
+                                                <span className="text-background text-lg font-semibold">{servicio.precio}</span>
                                                 <Button
                                                     type="roundedLight"
                                                     className="text-sm"
