@@ -91,7 +91,7 @@ const RequestsScreen = () => {
   return (
       <div className="p-8 space-y-6 min-h-screen bg-primaryLight">
         <div className="flex items-center justify-between">
-          <h1 className="text-h3 font-heading font-semibold mb-6">Solicitudes</h1>
+          <h1 className="text-h2 font-normal text-textMain mb-6">Solicitudes</h1>
           <Button type="dark" onClick={() => navigate("/stylist/dashboard")}>
             Volver al panel
           </Button>

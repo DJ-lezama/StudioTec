@@ -180,18 +180,6 @@ const AppointmentDetailsOverlay = ({ request, onClose, onRespond }) => {
 
             {!showCalendar && (
                 <div className="pt-4 space-y-3">
-                  {alternativeTime && (
-                      <div className="flex justify-end">
-                        <Button
-                            type="transparent"
-                            onClick={() => setShowCalendar(true)}
-                            className="text-sm"
-                        >
-                          Cambiar horario propuesto
-                        </Button>
-                      </div>
-                  )}
-
                   <Button
                       type="dark"
                       onClick={handleSubmitDecision}
