@@ -151,7 +151,7 @@ const catalogData = {
 // Configuración de categorías
 export const categoryConfig = {
     hair: { label: "Cabello", icon: "Scissors" },
-    nails: { label: "Uñas", icon: "Fingerprint" },
+    nails: { label: "Uñas", icon: "Hand" },
     eyebrows: { label: "Cara", icon: "Eye" }
 };
 

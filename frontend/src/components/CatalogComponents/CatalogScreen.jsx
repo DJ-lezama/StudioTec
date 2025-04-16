@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Scissors, Fingerprint, Eye, Sparkles } from "lucide-react";
+import { Scissors, Hand, Eye } from "lucide-react";
 
 // Importación de componentes
 import ServiceCard from "./ServiceCard";
@@ -23,7 +23,7 @@ function CatalogScreen() {
     // Mapeo de íconos de Lucide para las categorías
     const iconComponents = {
         Scissors: Scissors,
-        Fingerprint: Fingerprint,
+        Hand: Hand,
         Eye: Eye
     };
 

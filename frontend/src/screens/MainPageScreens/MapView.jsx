@@ -121,7 +121,7 @@ const MapView = () => {
                             icon={<ArrowRight size={16} />}
                             className="px-6 py-3 font-semibold"
                         >
-                            Reservar cita
+                            Reservar tu cita
                         </Button>
                     </div>
                 </div>

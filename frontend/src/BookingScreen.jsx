@@ -3,11 +3,32 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import Button from "../../frontend/src/components/common/Button";
 
+const services = [
+    { id: "corte", name: "Corte de cabello" },
+    { id: "peinado", name: "Peinado" },
+    { id: "coloracion", name: "Coloración" },
+    { id: "tratamiento", name: "Tratamiento capilar" },
+    { id: "manicure", name: "Manicure" },
+    { id: "pedicure", name: "Pedicure" },
+];
+
+const stylists = [
+    { id: "stylistA", name: "Estilista A" },
+    { id: "stylistB", name: "Estilista B" },
+    { id: "stylistC", name: "Estilista C" },
+];
+
+const availableTimes = [
+    "09:00", "10:00", "11:00", "12:00",
+    "13:00", "14:00", "15:00", "16:00",
+    "17:00", "18:00"
+];
+
 function BookingScreen() {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
-        service: "",
-        stylist: "",
+        serviceId: "",
+        stylistId: "",
         date: "",
         time: "",
         name: "",
@@ -16,47 +37,43 @@ function BookingScreen() {
         comments: "",
     });
 
-    const services = [
-        "Corte de cabello",
-        "Peinado",
-        "Coloración",
-        "Tratamiento capilar",
-        "Manicure",
-        "Pedicure",
-    ];
-
-    const stylists = [
-        "Estilista A",
-        "Estilista B",
-        "Estilista C",
-    ];
-
-    const availableTimes = [
-        "09:00", "10:00", "11:00", "12:00",
-        "13:00", "14:00", "15:00", "16:00",
-        "17:00", "18:00"
-    ];
-
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
 
-    const nextStep = () => {
-        setStep(step + 1);
+    const nextStep = () => setStep(step + 1);
+    const prevStep = () => setStep(step - 1);
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return format(date, "EEEE d 'de' MMMM 'de' yyyy", { locale: es });
     };
 
-    const prevStep = () => {
-        setStep(step - 1);
-    };
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Simulación de envío - en producción, aquí iría la llamada a la API
+        // Aquí se enviaría la información de la reserva al backend
+        const bookingToSave = {
+            serviceId: formData.serviceId,
+            stylistId: formData.stylistId,
+            date: formData.date,
+            time: formData.time,
+            client: {
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+            },
+            comments: formData.comments || null,
+            createdAt: new Date().toISOString(),
+        };
+
+        // Por ahora, solo mostramos una alerta
         alert("¡Reserva completada! Te enviaremos una confirmación por correo electrónico.");
+        // Reiniciar el formulario
         setFormData({
-            service: "",
-            stylist: "",
+            serviceId: "",
+            stylistId: "",
             date: "",
             time: "",
             name: "",
@@ -67,30 +84,27 @@ function BookingScreen() {
         setStep(1);
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return "";
-        const date = new Date(dateString);
-        return format(date, "EEEE d 'de' MMMM 'de' yyyy", { locale: es });
-    };
-
     const renderStepContent = () => {
+        const selectedService = services.find(s => s.id === formData.serviceId)?.name || "";
+        const selectedStylist = stylists.find(s => s.id === formData.stylistId)?.name || "";
+
         switch (step) {
             case 1:
                 return (
                     <div className="space-y-6">
                         <h2 className="text-h3 font-heading font-semibold text-textMain">Selecciona un servicio</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {services.map((service) => (
                                 <div
-                                    key={service}
-                                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                                        formData.service === service
-                                            ? "border-secondary bg-primary/30"
-                                            : "border-gray-200 hover:border-secondary"
+                                    key={service.id}
+                                    className={`p-4 border rounded-lg cursor-pointer transition-colors duration-200 ${
+                                        formData.serviceId === service.id
+                                            ? "border-secondary bg-primary"
+                                            : "border-gray-200 hover:border-secondary hover:bg-primary/30"
                                     }`}
-                                    onClick={() => setFormData({ ...formData, service })}
+                                    onClick={() => setFormData({...formData, serviceId: service.id})}
                                 >
-                                    <span className="font-medium">{service}</span>
+                                    <p className="font-medium text-textMain">{service.name}</p>
                                 </div>
                             ))}
                         </div>
@@ -98,163 +112,182 @@ function BookingScreen() {
                             <Button
                                 type="dark"
                                 onClick={nextStep}
-                                className={formData.service ? "opacity-100" : "opacity-50 cursor-not-allowed"}
-                                disabled={!formData.service}
+                                disabled={!formData.serviceId}
+                                className={!formData.serviceId ? "opacity-50 cursor-not-allowed" : ""}
                             >
                                 Continuar
                             </Button>
                         </div>
                     </div>
                 );
+
             case 2:
                 return (
                     <div className="space-y-6">
-                        <h2 className="text-h3 font-heading font-semibold text-textMain">Selecciona estilista</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <h2 className="text-h3 font-heading font-semibold text-textMain">Selecciona un estilista</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {stylists.map((stylist) => (
                                 <div
-                                    key={stylist}
-                                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                                        formData.stylist === stylist
-                                            ? "border-secondary bg-primary/30"
-                                            : "border-gray-200 hover:border-secondary"
+                                    key={stylist.id}
+                                    className={`p-4 border rounded-lg cursor-pointer transition-colors duration-200 ${
+                                        formData.stylistId === stylist.id
+                                            ? "border-secondary bg-primary"
+                                            : "border-gray-200 hover:border-secondary hover:bg-primary/30"
                                     }`}
-                                    onClick={() => setFormData({ ...formData, stylist })}
+                                    onClick={() => setFormData({...formData, stylistId: stylist.id})}
                                 >
-                                    <span className="font-medium">{stylist}</span>
+                                    <p className="font-medium text-textMain">{stylist.name}</p>
                                 </div>
                             ))}
                         </div>
                         <div className="pt-4 flex justify-between">
-                            <Button type="transparent" onClick={prevStep}>
-                                Atrás
-                            </Button>
+                            <Button type="transparent" onClick={prevStep}>Atrás</Button>
                             <Button
                                 type="dark"
                                 onClick={nextStep}
-                                className={formData.stylist ? "opacity-100" : "opacity-50 cursor-not-allowed"}
-                                disabled={!formData.stylist}
+                                disabled={!formData.stylistId}
+                                className={!formData.stylistId ? "opacity-50 cursor-not-allowed" : ""}
                             >
                                 Continuar
                             </Button>
                         </div>
                     </div>
                 );
+
             case 3:
+                const today = new Date();
+                const minDate = today.toISOString().split('T')[0];
+                const maxDate = new Date(today);
+                maxDate.setMonth(maxDate.getMonth() + 3);
+                const maxDateStr = maxDate.toISOString().split('T')[0];
+
                 return (
                     <div className="space-y-6">
                         <h2 className="text-h3 font-heading font-semibold text-textMain">Selecciona fecha y hora</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <div className="space-y-4">
                             <div>
-                                <label className="block text-body-s font-medium mb-2">Fecha</label>
+                                <label className="block text-textMain font-medium mb-2">Fecha</label>
                                 <input
                                     type="date"
                                     name="date"
-                                    min={format(new Date(), "yyyy-MM-dd")}
+                                    min={minDate}
+                                    max={maxDateStr}
                                     value={formData.date}
                                     onChange={handleInputChange}
                                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
                                     required
                                 />
                             </div>
-                            <div>
-                                <label className="block text-body-s font-medium mb-2">Hora</label>
-                                <select
-                                    name="time"
-                                    value={formData.time}
-                                    onChange={handleInputChange}
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
-                                    required
-                                    disabled={!formData.date}
-                                >
-                                    <option value="">Selecciona una hora</option>
-                                    {availableTimes.map((time) => (
-                                        <option key={time} value={time}>
-                                            {time}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+
+                            {formData.date && (
+                                <div>
+                                    <label className="block text-textMain font-medium mb-2">Hora</label>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                                        {availableTimes.map((time) => (
+                                            <div
+                                                key={time}
+                                                className={`p-2 text-center border rounded-lg cursor-pointer transition-colors duration-200 ${
+                                                    formData.time === time
+                                                        ? "border-secondary bg-primary"
+                                                        : "border-gray-200 hover:border-secondary hover:bg-primary/30"
+                                                }`}
+                                                onClick={() => setFormData({...formData, time})}
+                                            >
+                                                {time}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
+
                         <div className="pt-4 flex justify-between">
-                            <Button type="transparent" onClick={prevStep}>
-                                Atrás
-                            </Button>
+                            <Button type="transparent" onClick={prevStep}>Atrás</Button>
                             <Button
                                 type="dark"
                                 onClick={nextStep}
-                                className={(formData.date && formData.time) ? "opacity-100" : "opacity-50 cursor-not-allowed"}
                                 disabled={!formData.date || !formData.time}
+                                className={!formData.date || !formData.time ? "opacity-50 cursor-not-allowed" : ""}
                             >
                                 Continuar
                             </Button>
                         </div>
                     </div>
                 );
+
             case 4:
                 return (
                     <div className="space-y-6">
-                        <h2 className="text-h3 font-heading font-semibold text-textMain">Tus datos</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <h2 className="text-h3 font-heading font-semibold text-textMain">Tus datos personales</h2>
+
+                        <div className="space-y-4">
                             <div>
-                                <label className="block text-body-s font-medium mb-2">Nombre completo</label>
+                                <label className="block text-textMain font-medium mb-2">Nombre completo</label>
                                 <input
                                     type="text"
                                     name="name"
                                     value={formData.name}
                                     onChange={handleInputChange}
                                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
+                                    placeholder="Ej. María González"
                                     required
                                 />
                             </div>
+
                             <div>
-                                <label className="block text-body-s font-medium mb-2">Correo electrónico</label>
+                                <label className="block text-textMain font-medium mb-2">Correo electrónico</label>
                                 <input
                                     type="email"
                                     name="email"
                                     value={formData.email}
                                     onChange={handleInputChange}
                                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
+                                    placeholder="Ej. maria@ejemplo.com"
                                     required
                                 />
                             </div>
+
                             <div>
-                                <label className="block text-body-s font-medium mb-2">Teléfono</label>
+                                <label className="block text-textMain font-medium mb-2">Teléfono</label>
                                 <input
                                     type="tel"
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleInputChange}
                                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
+                                    placeholder="Ej. 222 123 4567"
                                     required
                                 />
                             </div>
-                            <div className="md:col-span-2">
-                                <label className="block text-body-s font-medium mb-2">Comentarios (opcional)</label>
+
+                            <div>
+                                <label className="block text-textMain font-medium mb-2">Comentarios adicionales (opcional)</label>
                                 <textarea
                                     name="comments"
                                     value={formData.comments}
                                     onChange={handleInputChange}
                                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
+                                    placeholder="Si tienes alguna solicitud especial, déjanos saber"
                                     rows="3"
-                                ></textarea>
+                                />
                             </div>
                         </div>
+
                         <div className="pt-4 flex justify-between">
-                            <Button type="transparent" onClick={prevStep}>
-                                Atrás
-                            </Button>
+                            <Button type="transparent" onClick={prevStep}>Atrás</Button>
                             <Button
                                 type="dark"
                                 onClick={nextStep}
-                                className={(formData.name && formData.email && formData.phone) ? "opacity-100" : "opacity-50 cursor-not-allowed"}
                                 disabled={!formData.name || !formData.email || !formData.phone}
+                                className={!formData.name || !formData.email || !formData.phone ? "opacity-50 cursor-not-allowed" : ""}
                             >
-                                Continuar
+                                Revisar y confirmar
                             </Button>
                         </div>
                     </div>
                 );
+
             case 5:
                 return (
                     <div className="space-y-6">
@@ -263,11 +296,11 @@ function BookingScreen() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-body-s text-gray-500">Servicio</p>
-                                    <p className="text-body-m font-medium">{formData.service}</p>
+                                    <p className="text-body-m font-medium">{selectedService}</p>
                                 </div>
                                 <div>
                                     <p className="text-body-s text-gray-500">Estilista</p>
-                                    <p className="text-body-m font-medium">{formData.stylist}</p>
+                                    <p className="text-body-m font-medium">{selectedStylist}</p>
                                 </div>
                                 <div>
                                     <p className="text-body-s text-gray-500">Fecha</p>
@@ -295,57 +328,47 @@ function BookingScreen() {
                             </div>
                         </div>
                         <div className="pt-4 flex justify-between">
-                            <Button type="transparent" onClick={prevStep}>
-                                Atrás
-                            </Button>
-                            <Button type="dark" onClick={handleSubmit}>
-                                Confirmar reserva
-                            </Button>
+                            <Button type="transparent" onClick={prevStep}>Atrás</Button>
+                            <Button type="dark" onClick={handleSubmit}>Confirmar reserva</Button>
                         </div>
                     </div>
                 );
+
             default:
                 return null;
         }
     };
 
     return (
-        <div className="min-h-screen pt-24 px-6 sm:px-8 lg:px-16 bg-primaryLight">
-            <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md p-8">
+        <div className="min-h-screen pt-24 pb-12 px-6 sm:px-8 lg:px-16 bg-primaryLight">
+            <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md p-6 md:p-8">
                 <h1 className="text-h2 font-heading font-bold text-textMain mb-6">Agenda tu cita</h1>
 
-                {/* Progress bar */}
-                <div className="mb-8">
-                    <div className="flex justify-between">
-                        {[1, 2, 3, 4, 5].map((stepNumber) => (
-                            <div key={stepNumber} className="flex flex-col items-center">
-                                <div
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mb-1
-                    ${step >= stepNumber ? "bg-secondary text-white" : "bg-gray-200 text-gray-500"}`}
-                                >
-                                    {stepNumber}
-                                </div>
-                                <span className="text-xs text-gray-500 hidden sm:block">
-                  {stepNumber === 1 && "Servicio"}
-                                    {stepNumber === 2 && "Estilista"}
-                                    {stepNumber === 3 && "Fecha/Hora"}
-                                    {stepNumber === 4 && "Datos"}
-                                    {stepNumber === 5 && "Confirmar"}
-                </span>
+                {/* Progress indicator */}
+                <div className="flex mb-8">
+                    {[1, 2, 3, 4, 5].map((stepNumber) => (
+                        <div key={stepNumber} className="flex-1 flex flex-col items-center">
+                            <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
+                                    stepNumber === step
+                                        ? "bg-secondary text-white"
+                                        : stepNumber < step
+                                            ? "bg-secondary/30 text-white"
+                                            : "bg-gray-200 text-gray-500"
+                                }`}
+                            >
+                                {stepNumber}
                             </div>
-                        ))}
-                    </div>
-                    <div className="relative mt-2">
-                        <div className="absolute top-0 h-1 w-full bg-gray-200 rounded"></div>
-                        <div
-                            className="absolute top-0 h-1 bg-secondary rounded transition-all duration-300"
-                            style={{ width: `${(step - 1) * 25}%` }}
-                        ></div>
-                    </div>
+                            <div
+                                className={`h-1 ${stepNumber < 5 ? "w-full" : "w-0"} ${
+                                    stepNumber < step ? "bg-secondary/30" : "bg-gray-200"
+                                }`}
+                            />
+                        </div>
+                    ))}
                 </div>
 
-                {/* Form content */}
-                <form>{renderStepContent()}</form>
+                {renderStepContent()}
             </div>
         </div>
     );
