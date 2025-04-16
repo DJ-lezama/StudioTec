@@ -1,6 +1,8 @@
-import fondo from '../assets/MainView1.png';
-import decoracion from '../assets/wave.svg';
-import Button from '../components/common/Button.jsx';
+import React from 'react';
+import fondo from '../../assets/MainView1.png';
+import decoracion from '../../assets/wave.svg';
+import Button from '../../components/common/Button.jsx';
+import { ArrowRight } from 'lucide-react'; // Asegúrate de importar el ícono
 
 function MainView() {
     return (
@@ -21,10 +23,13 @@ function MainView() {
                 />
             </div>
 
+            {/* Botón actualizado */}
             <div className="absolute bottom-2/4 md:right-1/3 right-4 md:translate-x-40 z-20">
                 <Button
-                    type="dark"
-                    className="px-4 py-2 md:px-8 md:py-3 rounded-full text-white font-normal text-[16px] md:text-[20px] tracking-[1px] leading-[50%]">
+                    type="rounded"
+                    icon={<ArrowRight size={16} />}
+                    className="px-4 py-2 md:px-8 md:py-3 font-semibold text-sm md:text-base"
+                >
                     Agenda tu cita
                 </Button>
             </div>
