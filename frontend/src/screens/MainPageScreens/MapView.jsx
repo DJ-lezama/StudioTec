@@ -6,7 +6,7 @@ import marker from "../../assets/marker.svg";
 import studioFoto from "../../assets/NombreStudioTec.png";
 import Button from "../../components/common/Button.jsx";
 import { ArrowRight } from 'lucide-react';
-
+import { useNavigate } from 'react-router-dom'; // Importamos useNavigate para la redirección
 delete L.Icon.Default.prototype._getIconUrl;
 
 const customIcon = new L.Icon({
@@ -23,7 +23,13 @@ const customIcon = new L.Icon({
 
 const MapView = () => {
     const position = [19.0597991, -98.3090179];
+    // Utilizamos el hook useNavigate para obtener la función de navegación
+    const navigate = useNavigate();
 
+    // Función para manejar la redirección a la página de agendar cita
+    const handleBookingClick = () => {
+        navigate('/agendar');
+    };
     return (
         <section className="w-full bg-white relative z-10">
             <div className="max-w-6xl mx-auto px-4 sm:px-5 lg:px-5">
@@ -120,6 +126,7 @@ const MapView = () => {
                             type="rounded"
                             icon={<ArrowRight size={16} />}
                             className="px-6 py-3 font-semibold"
+                            onClick={handleBookingClick}
                         >
                             Reservar tu cita
                         </Button>

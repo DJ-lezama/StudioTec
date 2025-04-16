@@ -1,24 +1,35 @@
-// src/components/ReviewsManager/SelectableReviewCard.jsx
-import { Star } from "lucide-react";
+// src/components/ReviewsVisualizer/SelectableReviewListItem.jsx
 import React from "react";
+import { Star, Scissors, Brush, Eye } from "lucide-react";
 
+// Componente para seleccionar reseñas en ManageReviewsScreen (formato de lista)
 function SelectableReviewCard({
-                                  image,
-                                  name,
-                                  review,
-                                  icon: Icon,
-                                  rating = 5,
-                                  isSelected,
-                                  onToggle,
-                              }) {
+                                      image,
+                                      name,
+                                      review,
+                                      icon,
+                                      rating = 5,
+                                      isSelected,
+                                      onToggle,
+                                  }) {
+    // Mapeo de íconos basado en el string
+    const iconComponents = {
+        scissors: Scissors,
+        brush: Brush,
+        eyebrow: Eye,
+    };
+
+    // Seleccionar el componente de ícono apropiado
+    const IconComponent = iconComponents[icon] || Scissors; // Por defecto usar Scissors
+
     return (
         <div
-            className={`relative flex flex-col bg-white rounded-3xl overflow-hidden w-[260px] min-w-[260px] shadow-md border-2 transition-all duration-200 ${
-                isSelected ? "border-secondary ring-2 ring-secondary/50" : "border-transparent"
+            className={`flex items-center bg-white p-4 rounded-lg shadow-sm border transition-all duration-200 hover:shadow-md ${
+                isSelected ? "border-secondary ring-1 ring-secondary/50 bg-secondary/5" : "border-gray-200"
             }`}
         >
-            {/* Selection checkbox */}
-            <div className="absolute top-2 right-2 z-10">
+            {/* Checkbox de selección */}
+            <div className="mr-4">
                 <input
                     type="checkbox"
                     checked={isSelected}
@@ -27,27 +38,38 @@ function SelectableReviewCard({
                 />
             </div>
 
-            {/* Top image */}
-            <img src={image} alt={name} className="h-[240px] w-full object-cover" />
+            {/* Avatar */}
+            <div className="w-12 h-12 rounded-full overflow-hidden mr-4 flex-shrink-0">
+                <img
+                    src={image}
+                    alt={name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                        // Imagen de respaldo si la original falla
+                        e.target.src = "https://randomuser.me/api/portraits/lego/1.jpg";
+                    }}
+                />
+            </div>
 
-            {/* Review content */}
-            <div className="flex flex-col justify-between h-full p-4 space-y-3 text-textMain font-body">
-                <p className="text-body-s font-medium leading-snug line-clamp-4">{review}</p>
-                <p className="text-body-xs font-bold">{name}</p>
-
+            {/* Detalles de la reseña */}
+            <div className="flex-grow">
                 <div className="flex items-center justify-between">
-                    <div className="flex gap-1">
-                        {Array.from({ length: rating }).map((_, i) => (
-                            <Star
-                                key={i}
-                                fill="currentColor"
-                                stroke="currentColor"
-                                className="w-4 h-4 text-textMain"
-                            />
-                        ))}
+                    <h3 className="font-medium text-textMain">{name}</h3>
+                    <div className="flex items-center">
+                        <div className="flex gap-1 mr-2">
+                            {Array.from({ length: rating }).map((_, i) => (
+                                <Star
+                                    key={i}
+                                    fill="currentColor"
+                                    stroke="currentColor"
+                                    className="w-4 h-4 text-textMain"
+                                />
+                            ))}
+                        </div>
+                        <IconComponent className="w-5 h-5 text-textMain" />
                     </div>
-                    <Icon className="w-5 h-5 text-textMain" />
                 </div>
+                <p className="text-sm text-gray-600 mt-1 line-clamp-2">{review}</p>
             </div>
         </div>
     );

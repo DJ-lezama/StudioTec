@@ -6,12 +6,18 @@ import iconCorte from '../../assets/icon-corte.svg';
 import iconManicura from '../../assets/icon-manicure.svg';
 import iconCejas from '../../assets/icon-cejas.svg';
 import Button from '../../components/common/Button.jsx';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
 
 const ServicesView = () => {
     const [activeService, setActiveService] = useState(null);
+    const navigate = useNavigate();
 
+    // Función para manejar la redirección a la página de agendar cita
+    const handleBookingClick = () => {
+        navigate('/catalogo');
+    };
     const servicios = [
         {
             id: 'corte',
@@ -44,8 +50,7 @@ const ServicesView = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Título con línea decorativa */}
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl font-bold text-[#60182D] mb-6">Nuestros Servicios</h2>
-                    <div className="w-32 h-1 bg-[#FAD4E3] mx-auto mb-6"></div>
+                    <h2 className="text-h2 font-bold text-[#60182D] mb-6">Nuestros servicios</h2>
                     <p className="text-xl text-[#3B0A20] max-w-3xl mx-auto">
                         Cada servicio es una experiencia pensada para ti, combinando técnica, creatividad y productos de alta calidad.
                     </p>
@@ -109,6 +114,7 @@ const ServicesView = () => {
                 </div>
                 <div className="mt-8 flex justify-end">
                     <Button
+                        onClick={handleBookingClick} // Agregamos el manejador de eventos
                         type="cta"
                         icon={<ArrowRight size={16} />}
                         className="py-3 px-8 font-semibold"

@@ -8,9 +8,9 @@ function AboutUsPage() {
         return (
             <>
                     <AboutSection />
-                    <ServicesView />
-                    <CertificationsSection />
                     <OurSpaces />
+                    <CertificationsSection />
+                    <ServicesView />
             </>
         );
 }

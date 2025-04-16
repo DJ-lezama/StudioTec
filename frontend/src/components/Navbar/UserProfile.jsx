@@ -23,14 +23,10 @@ function UserProfile({ className = "ml-6" }) {
   }, []);
 
   const handleProfileClick = () => {
+    // Modificamos esta parte para que siempre muestre el menú desplegable cuando hay un usuario
     if (currentUser) {
-      // Si el usuario es un estilista, ir directamente al dashboard de estilista
-      if (currentUser.role === "stylist") {
-        navigate("/stylist/dashboard");
-      } else {
-        // Si es un cliente normal, mostrar el menú desplegable
-        setShowDropdown(!showDropdown);
-      }
+      // Mostrar menú desplegable para cualquier usuario (cliente o estilista)
+      setShowDropdown(!showDropdown);
     } else {
       // Si no está autenticado, ir a la pantalla de autenticación
       navigate("/auth");
@@ -78,6 +74,7 @@ function UserProfile({ className = "ml-6" }) {
               <div className="px-4 py-2 border-b border-gray-100">
                 <p className="text-sm font-medium text-textMain">{currentUser.name}</p>
                 <p className="text-xs text-gray-500">{currentUser.email}</p>
+                <p className="text-xs text-gray-500 capitalize">Rol: {currentUser.role}</p>
               </div>
 
               <button

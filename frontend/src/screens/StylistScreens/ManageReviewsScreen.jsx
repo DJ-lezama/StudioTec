@@ -40,10 +40,15 @@ const allReviewsMock = [
     },
 ];
 
-const ManageReviewsScreen = ({ selectedReviews, onSaveSelected }) => {
+// Configurar valores predeterminados para las props
+const ManageReviewsScreen = ({
+                                 selectedReviews = [],
+                                 onSaveSelected = () => console.log("Guardando reseñas...")
+                             }) => {
     const navigate = useNavigate();
     const [selectedIds, setSelectedIds] = useState(
-        selectedReviews.map((r) => r.id) || []
+        // Asegurarnos de que selectedReviews es un array antes de llamar a map
+        Array.isArray(selectedReviews) ? selectedReviews.map((r) => r.id) : []
     );
 
     const handleToggle = (id) => {
@@ -58,12 +63,22 @@ const ManageReviewsScreen = ({ selectedReviews, onSaveSelected }) => {
 
     const handleSave = () => {
         const selected = allReviewsMock.filter((r) => selectedIds.includes(r.id));
-        onSaveSelected(selected);
-        navigate("/"); // redirect to homepage to view carousel
+
+        // Si no se proporciona una función onSaveSelected, simplemente mostrar un mensaje
+        if (typeof onSaveSelected === 'function') {
+            onSaveSelected(selected);
+        } else {
+            console.log("Reseñas seleccionadas:", selected);
+            // Podríamos guardar en localStorage como alternativa
+            localStorage.setItem('featuredReviews', JSON.stringify(selected));
+        }
+
+        // Redirigir a la página principal para ver el carrusel
+        navigate("/");
     };
 
     return (
-        <div className="p-8 min-h-screen space-y-6 bg-primaryLight">
+        <div className="p-8 pt-20 min-h-screen space-y-6 bg-primaryLight">
             <div className="flex items-center justify-between">
                 <h1 className="text-h3 font-heading font-semibold">
                     Administrar Reseñas

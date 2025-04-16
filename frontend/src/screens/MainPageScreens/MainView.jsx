@@ -1,10 +1,19 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom'; // Importamos useNavigate para la redirección
 import fondo from '../../assets/MainView1.png';
 import decoracion from '../../assets/wave.svg';
 import Button from '../../components/common/Button.jsx';
-import { ArrowRight } from 'lucide-react'; // Asegúrate de importar el ícono
+import { ArrowRight } from 'lucide-react';
 
 function MainView() {
+    // Utilizamos el hook useNavigate para obtener la función de navegación
+    const navigate = useNavigate();
+
+    // Función para manejar la redirección a la página de agendar cita
+    const handleBookingClick = () => {
+        navigate('/agendar');
+    };
+
     return (
         <div className="relative min-h-screen w-full overflow-hidden pt-16">
             <div className="absolute inset-0 -z-10">
@@ -23,12 +32,13 @@ function MainView() {
                 />
             </div>
 
-            {/* Botón actualizado */}
+            {/* Botón actualizado con función de navegación */}
             <div className="absolute bottom-2/4 md:right-1/3 right-4 md:translate-x-40 z-20">
                 <Button
                     type="rounded"
                     icon={<ArrowRight size={16} />}
                     className="px-4 py-2 md:px-8 md:py-3 font-semibold text-sm md:text-base"
+                    onClick={handleBookingClick} // Agregamos el manejador de eventos
                 >
                     Agenda tu cita
                 </Button>

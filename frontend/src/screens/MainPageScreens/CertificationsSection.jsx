@@ -55,8 +55,7 @@ const CertificationsSection = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 {/* Encabezado */}
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl font-bold text-[#60182D] mb-6">Certificaciones que nos avalan</h2>
-                    <div className="w-32 h-1 bg-[#FAD4E3] mx-auto mb-6"></div>
+                    <h2 className="text-h2 font-bold text-[#60182D] mb-6">Certificaciones que nos avalan</h2>
                     <p className="text-xl text-[#3B0A20] max-w-3xl mx-auto">
                         Nuestro compromiso con la excelencia se refleja en la formación continua de nuestro equipo y
                         las certificaciones que garantizan la calidad de nuestros servicios.
