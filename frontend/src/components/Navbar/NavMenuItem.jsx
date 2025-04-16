@@ -1,8 +1,8 @@
-import React from "react";
-import { NavLink } from "react-router-dom";
+import React from "react"
+import { NavLink } from "react-router-dom"
 
 function NavMenuItem({ label, to }) {
-    const isCTA = label === "Agendar una cita";
+    const isCTA = label === "Agendar una cita"
 
     return (
         <NavLink
@@ -15,7 +15,7 @@ function NavMenuItem({ label, to }) {
         >
             {label}
         </NavLink>
-    );
+    )
 }
 
-export default NavMenuItem;
+export default NavMenuItem

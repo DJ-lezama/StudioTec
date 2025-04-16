@@ -1,31 +1,33 @@
 // src/components/ReviewsVisualizer/SelectableReviewListItem.jsx
-import React from "react";
-import { Star, Scissors, Brush, Eye } from "lucide-react";
+import React from "react"
+import { Star, Scissors, Brush, Eye } from "lucide-react"
 
 // Componente para seleccionar reseñas en ManageReviewsScreen (formato de lista)
 function SelectableReviewCard({
-                                      image,
-                                      name,
-                                      review,
-                                      icon,
-                                      rating = 5,
-                                      isSelected,
-                                      onToggle,
-                                  }) {
+    image,
+    name,
+    review,
+    icon,
+    rating = 5,
+    isSelected,
+    onToggle,
+}) {
     // Mapeo de íconos basado en el string
     const iconComponents = {
         scissors: Scissors,
         brush: Brush,
         eyebrow: Eye,
-    };
+    }
 
     // Seleccionar el componente de ícono apropiado
-    const IconComponent = iconComponents[icon] || Scissors; // Por defecto usar Scissors
+    const IconComponent = iconComponents[icon] || Scissors // Por defecto usar Scissors
 
     return (
         <div
             className={`flex items-center bg-white p-4 rounded-lg shadow-sm border transition-all duration-200 hover:shadow-md ${
-                isSelected ? "border-secondary ring-1 ring-secondary/50 bg-secondary/5" : "border-gray-200"
+                isSelected
+                    ? "border-secondary ring-1 ring-secondary/50 bg-secondary/5"
+                    : "border-gray-200"
             }`}
         >
             {/* Checkbox de selección */}
@@ -46,7 +48,8 @@ function SelectableReviewCard({
                     className="w-full h-full object-cover"
                     onError={(e) => {
                         // Imagen de respaldo si la original falla
-                        e.target.src = "https://randomuser.me/api/portraits/lego/1.jpg";
+                        e.target.src =
+                            "https://randomuser.me/api/portraits/lego/1.jpg"
                     }}
                 />
             </div>
@@ -69,10 +72,12 @@ function SelectableReviewCard({
                         <IconComponent className="w-5 h-5 text-textMain" />
                     </div>
                 </div>
-                <p className="text-sm text-gray-600 mt-1 line-clamp-2">{review}</p>
+                <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                    {review}
+                </p>
             </div>
         </div>
-    );
+    )
 }
 
-export default SelectableReviewCard;
+export default SelectableReviewCard

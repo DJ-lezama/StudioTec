@@ -1,4 +1,4 @@
-import React from "react";
+import React from "react"
 
 /**
  * Componente para mostrar un ícono de categoría seleccionable
@@ -17,14 +17,16 @@ function CategoryIcon({ label, icon: Icon, active, onClick }) {
         >
             <div
                 className={`w-24 h-24 rounded-full flex items-center justify-center mb-3 transition-all duration-300 ${
-                    active ? "bg-secondary text-white" : "bg-primary/20 text-textMain"
+                    active
+                        ? "bg-secondary text-white"
+                        : "bg-primary/20 text-textMain"
                 }`}
             >
                 <Icon className="w-10 h-10" />
             </div>
             <span className="text-lg font-bold">{label}</span>
         </button>
-    );
+    )
 }
 
-export default CategoryIcon;
+export default CategoryIcon
