@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { Scissors, Hand, Eye } from "lucide-react";
-
-// Importación de componentes
 import ServiceCard from "../../components/CatalogComponents/ServiceCard.jsx";
 import CategoryIcon from "../../components/CatalogComponents/CategoryIcon";
 import SearchBar from "../../components/CatalogComponents/SearchBar";
 import EmptyState from "../../components/CatalogComponents/EmptyState";
 import CategoryHeader from "../../components/CatalogComponents/CategoryHeader";
 import PromoSection from "../../components/CatalogComponents/PromoSection";
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+
 
 // Importación de datos
 import catalogData, { categoryConfig as configData } from "../../components/CatalogComponents/catalogData.js";
@@ -16,9 +17,7 @@ import catalogData, { categoryConfig as configData } from "../../components/Cata
  * Componente principal para la pantalla de catálogo
  */
 function CatalogScreen() {
-    // Estados
-    const [selectedCategory, setSelectedCategory] = useState("hair");
-    const [searchQuery, setSearchQuery] = useState("");
+    const location = useLocation();
 
     // Mapeo de íconos de Lucide para las categorías
     const iconComponents = {
@@ -38,6 +37,21 @@ function CatalogScreen() {
         };
     }, {});
 
+    const [selectedCategory, setSelectedCategory] = useState("hair");
+    const [searchQuery, setSearchQuery] = useState("");
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const categoria = params.get("categoria");
+
+        if (categoria && categoryConfig[categoria]) {
+            setSelectedCategory(categoria);
+            const header = document.getElementById("catalog-services");
+            if (header) header.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [location.search]);
+
+
     // Filtrar servicios basados en la búsqueda
     const filteredServices = catalogData[selectedCategory]
         ? catalogData[selectedCategory].filter(service =>
@@ -50,8 +64,9 @@ function CatalogScreen() {
         <section className="pt-24 pb-20 px-6 sm:px-8 lg:px-16 bg-white">
             <div className="max-w-6xl mx-auto">
                 {/* Encabezado del catálogo */}
-                <div className="text-center mb-8">
+                <div id="catalog-services" className="text-center mb-8">
                     <h1 className="text-h2 font-heading font-bold text-textMain mb-6">Nuestro catálogo</h1>
+
 
                     {/* Íconos de categoría */}
                     <div className="flex justify-center gap-10 flex-wrap mb-8">
@@ -97,5 +112,6 @@ function CatalogScreen() {
         </section>
     );
 }
+
 
 export default CatalogScreen;

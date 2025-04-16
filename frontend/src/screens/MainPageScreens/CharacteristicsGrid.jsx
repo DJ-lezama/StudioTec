@@ -1,4 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+
 import serviceImage from '../../assets/1.png';
 import qualityImage from '../../assets/2.png';
 import paymentImage from '../../assets/3.png';
@@ -10,6 +12,8 @@ function CharacteristicsGrid() {
     return (
         <div className="w-full bg-white">
             <div className="w-full max-w-[2000px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-0">
+
+                {/* Imagen 1 */}
                 <div className="aspect-square overflow-hidden">
                     <img
                         src={serviceImage}
@@ -18,7 +22,8 @@ function CharacteristicsGrid() {
                     />
                 </div>
 
-                <div className="aspect-square bg-textMain text-primary group flex flex-col justify-end p-8 md:p-12 transition duration-300 hover:bg-primary hover:text-textMain">
+                {/* Texto 1 → Catálogo */}
+                <Link to="/catalogo" className="aspect-square bg-textMain text-primary group flex flex-col justify-end p-8 md:p-12 transition duration-300 hover:bg-primary hover:text-textMain">
                     <div className="mb-6 transition-colors duration-300 group-hover:text-textMain">
                         <ScissorIcon />
                     </div>
@@ -28,8 +33,9 @@ function CharacteristicsGrid() {
                             Adaptamos cada servicio a tus necesidades específicas para brindarte la mejor experiencia.
                         </p>
                     </div>
-                </div>
+                </Link>
 
+                {/* Imagen 2 */}
                 <div className="aspect-square overflow-hidden">
                     <img
                         src={qualityImage}
@@ -38,7 +44,8 @@ function CharacteristicsGrid() {
                     />
                 </div>
 
-                <div className="aspect-square bg-textMain text-primary group flex flex-col justify-end p-8 md:p-12 transition duration-300 hover:bg-primary hover:text-textMain">
+                {/* Texto 2 → Nosotros */}
+                <Link to="/nosotros" className="aspect-square bg-textMain text-primary group flex flex-col justify-end p-8 md:p-12 transition duration-300 hover:bg-primary hover:text-textMain">
                     <div className="mb-6 transition-colors duration-300 group-hover:text-textMain">
                         <StylistIcon />
                     </div>
@@ -48,8 +55,9 @@ function CharacteristicsGrid() {
                             Nuestro equipo está formado por profesionales con experiencia y formación continua en tendencias.
                         </p>
                     </div>
-                </div>
+                </Link>
 
+                {/* Imagen 3 */}
                 <div className="aspect-square overflow-hidden">
                     <img
                         src={paymentImage}
@@ -58,7 +66,8 @@ function CharacteristicsGrid() {
                     />
                 </div>
 
-                <div className="aspect-square bg-textMain text-primary group flex flex-col justify-end p-8 md:p-12 transition duration-300 hover:bg-primary hover:text-textMain">
+                {/* Texto 3 → Agendar */}
+                <Link to="/agendar" className="aspect-square bg-textMain text-primary group flex flex-col justify-end p-8 md:p-12 transition duration-300 hover:bg-primary hover:text-textMain">
                     <div className="mb-6 transition-colors duration-300 group-hover:text-textMain">
                         <PaymentIcon />
                     </div>
@@ -68,7 +77,8 @@ function CharacteristicsGrid() {
                             Aceptamos tarjeta, transferencia o efectivo. Elige la opción que mejor se adapte a ti.
                         </p>
                     </div>
-                </div>
+                </Link>
+
             </div>
         </div>
     );

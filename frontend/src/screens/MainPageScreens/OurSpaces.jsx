@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-
-// Importaciones de imágenes
 import instalacion1 from '../../assets/Instalaciones1.png';
 import instalacion2 from '../../assets/Instalaciones2.png';
 import instalacion3 from '../../assets/Instalaciones3.png';

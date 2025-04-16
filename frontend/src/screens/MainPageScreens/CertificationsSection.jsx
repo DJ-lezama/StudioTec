@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 // Importa las imágenes de las certificaciones
 import certLoreal from '../../assets/loreal.png';
-import certRedken from '../../assets/loreal.png';
-import certWella from '../../assets/loreal.png';
-import certOPI from '../../assets/loreal.png';
+import certRedken from '../../assets/redken.png';
+import certWella from '../../assets/wella.png';
+import certOPI from '../../assets/opi.png';
 
 const CertificationsSection = () => {
     // Estado para controlar la certificación actualmente seleccionada
