@@ -10,7 +10,6 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 
-// Importación de datos
 import catalogData, { categoryConfig as configData } from "../../components/CatalogComponents/catalogData.js";
 
 /**
