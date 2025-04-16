@@ -1,8 +1,8 @@
 // src/screens/StylistScreens/ManageReviewsScreen.jsx
-import React, { useState } from "react";
-import SelectableReviewCard from "../../components/ReviewsVisualizer/SelectableReviewCard";
-import Button from "../../components/common/Button";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react"
+import SelectableReviewCard from "../../components/ReviewsVisualizer/SelectableReviewCard"
+import Button from "../../components/common/Button"
+import { useNavigate } from "react-router-dom"
 
 const allReviewsMock = [
     {
@@ -16,8 +16,7 @@ const allReviewsMock = [
     {
         id: 2,
         name: "Grecia González",
-        review:
-            "¡Súper! Me hicieron un peinado rapidísimo y llegué a mi evento a tiempo",
+        review: "¡Súper! Me hicieron un peinado rapidísimo y llegué a mi evento a tiempo",
         icon: "brush",
         rating: 5,
         image: "https://randomuser.me/api/portraits/women/56.jpg",
@@ -38,44 +37,46 @@ const allReviewsMock = [
         rating: 5,
         image: "https://randomuser.me/api/portraits/women/32.jpg",
     },
-];
+]
 
 // Configurar valores predeterminados para las props
 const ManageReviewsScreen = ({
-                                 selectedReviews = [],
-                                 onSaveSelected = () => console.log("Guardando reseñas...")
-                             }) => {
-    const navigate = useNavigate();
+    selectedReviews = [],
+    onSaveSelected = () => console.log("Guardando reseñas..."),
+}) => {
+    const navigate = useNavigate()
     const [selectedIds, setSelectedIds] = useState(
         // Asegurarnos de que selectedReviews es un array antes de llamar a map
-        Array.isArray(selectedReviews) ? selectedReviews.map((r) => r.id) : []
-    );
+        Array.isArray(selectedReviews) ? selectedReviews.map((r) => r.id) : [],
+    )
 
     const handleToggle = (id) => {
         setSelectedIds((prev) =>
             prev.includes(id)
                 ? prev.filter((i) => i !== id)
                 : prev.length < 15
-                    ? [...prev, id]
-                    : prev
-        );
-    };
+                  ? [...prev, id]
+                  : prev,
+        )
+    }
 
     const handleSave = () => {
-        const selected = allReviewsMock.filter((r) => selectedIds.includes(r.id));
+        const selected = allReviewsMock.filter((r) =>
+            selectedIds.includes(r.id),
+        )
 
         // Si no se proporciona una función onSaveSelected, simplemente mostrar un mensaje
-        if (typeof onSaveSelected === 'function') {
-            onSaveSelected(selected);
+        if (typeof onSaveSelected === "function") {
+            onSaveSelected(selected)
         } else {
-            console.log("Reseñas seleccionadas:", selected);
+            console.log("Reseñas seleccionadas:", selected)
             // Podríamos guardar en localStorage como alternativa
-            localStorage.setItem('featuredReviews', JSON.stringify(selected));
+            localStorage.setItem("featuredReviews", JSON.stringify(selected))
         }
 
         // Redirigir a la página principal para ver el carrusel
-        navigate("/");
-    };
+        navigate("/")
+    }
 
     return (
         <div className="p-8 pt-20 min-h-screen space-y-6 bg-primaryLight">
@@ -83,7 +84,10 @@ const ManageReviewsScreen = ({
                 <h1 className="text-h3 font-heading font-semibold">
                     Administrar Reseñas
                 </h1>
-                <Button type="dark" onClick={() => navigate("/stylist/dashboard")}>
+                <Button
+                    type="dark"
+                    onClick={() => navigate("/stylist/dashboard")}
+                >
                     Volver al panel
                 </Button>
             </div>
@@ -107,7 +111,7 @@ const ManageReviewsScreen = ({
                 </div>
             )}
         </div>
-    );
-};
+    )
+}
 
-export default ManageReviewsScreen;
+export default ManageReviewsScreen

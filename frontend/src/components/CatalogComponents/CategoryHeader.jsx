@@ -1,4 +1,4 @@
-import React from "react";
+import React from "react"
 
 /**
  * Componente para mostrar el encabezado de la categoría actual
@@ -13,7 +13,7 @@ function CategoryHeader({ title }) {
             </h2>
             <div className="h-1 flex-grow bg-primary/30 rounded-full"></div>
         </div>
-    );
+    )
 }
 
-export default CategoryHeader;
+export default CategoryHeader

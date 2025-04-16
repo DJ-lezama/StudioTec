@@ -1,115 +1,173 @@
-import {StrictMode} from "react";
-import {createRoot} from "react-dom/client";
-import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
-import "./index.css";
-import {ProtectedRoute, StylistRoute} from "./components/ProtectedRoute";
+import { StrictMode } from "react"
+import { createRoot } from "react-dom/client"
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
+import "./index.css"
+import { ProtectedRoute, StylistRoute } from "./components/ProtectedRoute"
 
 // Layout
-import ContentWrapper from "./components/layout/ContentWrapper.jsx";
+import ContentWrapper from "./components/layout/ContentWrapper.jsx"
 
 // Common components
-import Navbar from "./components/Navbar/Navbar.jsx";
-import Footer from "./components/FooterStudioTec.jsx";
-import WelcomeNotification from "./screens/MainPageScreens/WelcomeNotification.jsx";
+import Navbar from "./components/Navbar/Navbar.jsx"
+import Footer from "./components/FooterStudioTec.jsx"
+import WelcomeNotification from "./screens/MainPageScreens/WelcomeNotification.jsx"
 
 // Pages
-import HomePage from "./screens/MainPageScreens/HomePage";
-import AuthScreen from "./screens/MainPageScreens/AuthenticationScreens/AuthScreen.jsx";
-import AboutUsPage from "./AboutUsScreen.jsx";
-import CatalogPage from "./CatalogMainScreen.jsx";
-import BookingPage from "./BookingScreen.jsx";
-import ProfileScreen from "./screens/MainPageScreens/ProfileScreen.jsx";
-import CustomVisitForm from "./screens/MainPageScreens/CustomVisitForm.jsx";
-import BookingConfirmation from "./screens/MainPageScreens/BookingConfirmation.jsx";
+import HomePage from "./screens/MainPageScreens/HomePage"
+import AuthScreen from "./screens/MainPageScreens/AuthenticationScreens/AuthScreen.jsx"
+import AboutUsPage from "./AboutUsScreen.jsx"
+import CatalogPage from "./CatalogMainScreen.jsx"
+import BookingPage from "./BookingScreen.jsx"
+import ProfileScreen from "./screens/MainPageScreens/ProfileScreen.jsx"
+import CustomVisitForm from "./screens/MainPageScreens/CustomVisitForm.jsx"
+import BookingConfirmation from "./screens/MainPageScreens/BookingConfirmation.jsx"
 
 // Stylist screens
-import DashboardScreen from "./screens/StylistScreens/DashboardScreen";
-import ScheduleScreen from "./screens/StylistScreens/ScheduleScreen";
-import ClientsScreen from "./screens/StylistScreens/ClientsScreen";
-import RequestsScreen from "./screens/StylistScreens/RequestsScreen";
-import ManageServicesScreen from "./screens/StylistScreens/ManageServicesScreen";
-import ManageReviewsScreen from "./screens/StylistScreens/ManageReviewsScreen";
-import AuthProvider from "./features/auth/context/AuthProvider.jsx";
+import DashboardScreen from "./screens/StylistScreens/DashboardScreen"
+import ScheduleScreen from "./screens/StylistScreens/ScheduleScreen"
+import ClientsScreen from "./screens/StylistScreens/ClientsScreen"
+import RequestsScreen from "./screens/StylistScreens/RequestsScreen"
+import ManageServicesScreen from "./screens/StylistScreens/ManageServicesScreen"
+import ManageReviewsScreen from "./screens/StylistScreens/ManageReviewsScreen"
+import AuthProvider from "./features/auth/context/AuthProvider.jsx"
 
-createRoot(document.getElementById("root")).render(<StrictMode>
+createRoot(document.getElementById("root")).render(
+    <StrictMode>
         <AuthProvider>
             <Router>
-                <Navbar/>
-                <WelcomeNotification/>
+                <Navbar />
+                <WelcomeNotification />
                 <Routes>
-
-                    <Route path="/" element={<HomePage/>}/>
-                    <Route path="/nosotros"
-                           element={<ContentWrapper><AboutUsPage/></ContentWrapper>}/>
-                    <Route path="/catalogo"
-                           element={<ContentWrapper><CatalogPage/></ContentWrapper>}/>
-                    <Route path="/agendar"
-                           element={<ContentWrapper><BookingPage/></ContentWrapper>}/>
-                    <Route path="/consulta"
-                           element={<ContentWrapper><CustomVisitForm/></ContentWrapper>}/>
-                    <Route path="/confirmacion"
-                           element={<ContentWrapper><BookingConfirmation/></ContentWrapper>}/>
-
-
-                    <Route path="/auth" element={<AuthScreen/>}/>
-
-                    <Route path="/stylist/dashboard" element={
-                        <StylistRoute>
+                    <Route path="/" element={<HomePage />} />
+                    <Route
+                        path="/nosotros"
+                        element={
                             <ContentWrapper>
-                                <DashboardScreen/>
+                                <AboutUsPage />
                             </ContentWrapper>
-                        </StylistRoute>
-                    }/>
-                    <Route path="/stylist/schedule" element={
-                        <StylistRoute>
+                        }
+                    />
+                    <Route
+                        path="/catalogo"
+                        element={
                             <ContentWrapper>
-                                <ScheduleScreen/>
+                                <CatalogPage />
                             </ContentWrapper>
-                        </StylistRoute>
-                    }/>
-                    <Route path="/stylist/clientes" element={
-                        <StylistRoute>
+                        }
+                    />
+                    <Route
+                        path="/agendar"
+                        element={
                             <ContentWrapper>
-                                <ClientsScreen/>
+                                <BookingPage />
                             </ContentWrapper>
-                        </StylistRoute>
-                    }/>
-                    <Route path="/stylist/solicitudes" element={
-                        <StylistRoute>
+                        }
+                    />
+                    <Route
+                        path="/consulta"
+                        element={
                             <ContentWrapper>
-                                <RequestsScreen/>
+                                <CustomVisitForm />
                             </ContentWrapper>
-                        </StylistRoute>
-                    }/>
-                    <Route path="/stylist/servicios" element={
-                        <StylistRoute>
+                        }
+                    />
+                    <Route
+                        path="/confirmacion"
+                        element={
                             <ContentWrapper>
-                                <ManageServicesScreen/>
+                                <BookingConfirmation />
                             </ContentWrapper>
-                        </StylistRoute>
-                    }/>
-                    <Route path="/stylist/reviews" element={
-                        <StylistRoute>
-                            <ContentWrapper>
-                                <ManageReviewsScreen/>
-                            </ContentWrapper>
-                        </StylistRoute>
-                    }/>
+                        }
+                    />
 
-                    <Route path="/perfil" element={
-                        <ProtectedRoute>
-                            {/* ProfileScreen does not ContentWrapper if it handles its own padding */}
-                            <ProfileScreen/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route path="/auth" element={<AuthScreen />} />
 
-                    <Route path="*" element={<ContentWrapper>
-                        <div className="p-8 text-center"><h1 className="text-h2 font-heading">Página no encontrada</h1>
-                        </div>
-                    </ContentWrapper>}/>
+                    <Route
+                        path="/stylist/dashboard"
+                        element={
+                            <StylistRoute>
+                                <ContentWrapper>
+                                    <DashboardScreen />
+                                </ContentWrapper>
+                            </StylistRoute>
+                        }
+                    />
+                    <Route
+                        path="/stylist/schedule"
+                        element={
+                            <StylistRoute>
+                                <ContentWrapper>
+                                    <ScheduleScreen />
+                                </ContentWrapper>
+                            </StylistRoute>
+                        }
+                    />
+                    <Route
+                        path="/stylist/clientes"
+                        element={
+                            <StylistRoute>
+                                <ContentWrapper>
+                                    <ClientsScreen />
+                                </ContentWrapper>
+                            </StylistRoute>
+                        }
+                    />
+                    <Route
+                        path="/stylist/solicitudes"
+                        element={
+                            <StylistRoute>
+                                <ContentWrapper>
+                                    <RequestsScreen />
+                                </ContentWrapper>
+                            </StylistRoute>
+                        }
+                    />
+                    <Route
+                        path="/stylist/servicios"
+                        element={
+                            <StylistRoute>
+                                <ContentWrapper>
+                                    <ManageServicesScreen />
+                                </ContentWrapper>
+                            </StylistRoute>
+                        }
+                    />
+                    <Route
+                        path="/stylist/reviews"
+                        element={
+                            <StylistRoute>
+                                <ContentWrapper>
+                                    <ManageReviewsScreen />
+                                </ContentWrapper>
+                            </StylistRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/perfil"
+                        element={
+                            <ProtectedRoute>
+                                {/* ProfileScreen does not ContentWrapper if it handles its own padding */}
+                                <ProfileScreen />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="*"
+                        element={
+                            <ContentWrapper>
+                                <div className="p-8 text-center">
+                                    <h1 className="text-h2 font-heading">
+                                        Página no encontrada
+                                    </h1>
+                                </div>
+                            </ContentWrapper>
+                        }
+                    />
                 </Routes>
-                <Footer/>
+                <Footer />
             </Router>
         </AuthProvider>
-    </StrictMode>
-);
+    </StrictMode>,
+)

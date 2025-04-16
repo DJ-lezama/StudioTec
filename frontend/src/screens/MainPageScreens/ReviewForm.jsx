@@ -1,162 +1,170 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Star, X, Upload, Camera } from 'lucide-react';
-import Button from '../../components/common/Button.jsx';
+import React, { useState, useRef, useEffect } from "react"
+import { Star, X, Upload, Camera } from "lucide-react"
+import Button from "../../components/common/Button.jsx"
 
 const ReviewForm = ({ isOpen, onClose, onSubmit }) => {
     const [formData, setFormData] = useState({
-        name: '',
-        review: '',
+        name: "",
+        review: "",
         rating: 5,
-        serviceType: 'scissors' // Default service type
-    });
-    const [profileImage, setProfileImage] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [showSuccess, setShowSuccess] = useState(false);
-    const [error, setError] = useState('');
-    const [charCount, setCharCount] = useState(0);
-    const fileInputRef = useRef(null);
+        serviceType: "scissors", // Default service type
+    })
+    const [profileImage, setProfileImage] = useState(null)
+    const [imagePreview, setImagePreview] = useState(null)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [showSuccess, setShowSuccess] = useState(false)
+    const [error, setError] = useState("")
+    const [charCount, setCharCount] = useState(0)
+    const fileInputRef = useRef(null)
 
     // Configuración de límites de caracteres
-    const MIN_CHARS = 10;
-    const MAX_CHARS = 160;
+    const MIN_CHARS = 10
+    const MAX_CHARS = 160
 
     // Opciones para el tipo de servicio con sus iconos correspondientes
     const serviceOptions = [
-        { value: 'scissors', label: 'Corte y peinado' },
-        { value: 'brush', label: 'Uñas y manicure' },
-        { value: 'eyebrow', label: 'Cejas y pestañas' }
-    ];
+        { value: "scissors", label: "Corte y peinado" },
+        { value: "brush", label: "Uñas y manicure" },
+        { value: "eyebrow", label: "Cejas y pestañas" },
+    ]
 
     useEffect(() => {
         // Contar caracteres en la reseña
-        const chars = formData.review.trim().length;
-        setCharCount(chars);
-    }, [formData.review]);
+        const chars = formData.review.trim().length
+        setCharCount(chars)
+    }, [formData.review])
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value } = e.target
         setFormData((prev) => ({
             ...prev,
             [name]: value,
-        }));
-    };
+        }))
+    }
 
     const handleRatingChange = (newRating) => {
         setFormData((prev) => ({
             ...prev,
             rating: newRating,
-        }));
-    };
+        }))
+    }
 
     const handleImageChange = (e) => {
-        const file = e.target.files[0];
+        const file = e.target.files[0]
         if (file) {
-            if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                setError('La imagen es demasiado grande. El tamaño máximo es 5MB.');
-                return;
+            if (file.size > 5 * 1024 * 1024) {
+                // 5MB limit
+                setError(
+                    "La imagen es demasiado grande. El tamaño máximo es 5MB.",
+                )
+                return
             }
 
-            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            const allowedTypes = ["image/jpeg", "image/png", "image/jpg"]
             if (!allowedTypes.includes(file.type)) {
-                setError('Solo se permiten imágenes en formato JPG, JPEG o PNG.');
-                return;
+                setError(
+                    "Solo se permiten imágenes en formato JPG, JPEG o PNG.",
+                )
+                return
             }
 
-            setProfileImage(file);
+            setProfileImage(file)
 
             // Create image preview
-            const reader = new FileReader();
+            const reader = new FileReader()
             reader.onloadend = () => {
-                setImagePreview(reader.result);
-            };
-            reader.readAsDataURL(file);
+                setImagePreview(reader.result)
+            }
+            reader.readAsDataURL(file)
         }
-    };
+    }
 
     const triggerFileInput = () => {
-        fileInputRef.current.click();
-    };
+        fileInputRef.current.click()
+    }
 
     const removeImage = () => {
-        setProfileImage(null);
-        setImagePreview(null);
+        setProfileImage(null)
+        setImagePreview(null)
         if (fileInputRef.current) {
-            fileInputRef.current.value = "";
+            fileInputRef.current.value = ""
         }
-    };
+    }
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
+        e.preventDefault()
+        setError("")
 
         // Validación básica
         if (!formData.name.trim()) {
-            setError('Por favor ingresa tu nombre');
-            return;
+            setError("Por favor ingresa tu nombre")
+            return
         }
 
         if (!formData.review.trim()) {
-            setError('Por favor escribe tu reseña');
-            return;
+            setError("Por favor escribe tu reseña")
+            return
         }
 
         // Validación de límites de caracteres
         if (charCount < MIN_CHARS) {
-            setError(`Tu reseña debe tener al menos ${MIN_CHARS} caracteres.`);
-            return;
+            setError(`Tu reseña debe tener al menos ${MIN_CHARS} caracteres.`)
+            return
         }
 
         if (charCount > MAX_CHARS) {
-            setError(`Tu reseña no puede tener más de ${MAX_CHARS} caracteres.`);
-            return;
+            setError(`Tu reseña no puede tener más de ${MAX_CHARS} caracteres.`)
+            return
         }
 
-        setIsSubmitting(true);
+        setIsSubmitting(true)
 
         try {
             // Aquí normalmente enviarías los datos a un servidor incluyendo la imagen
             // Simulando una llamada a API
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 1000))
 
             // Crear un objeto con los datos y un ID generado
             const newReview = {
                 ...formData,
                 id: Date.now(), // ID simple basado en timestamp
                 // Si hay una imagen cargada, usamos la URL de la preview, sino usamos una por defecto
-                image: imagePreview || "https://randomuser.me/api/portraits/women/45.jpg",
-            };
+                image:
+                    imagePreview ||
+                    "https://randomuser.me/api/portraits/women/45.jpg",
+            }
 
             if (onSubmit) {
-                onSubmit(newReview);
+                onSubmit(newReview)
             }
 
             // Mostrar mensaje de éxito
-            setShowSuccess(true);
+            setShowSuccess(true)
 
             // Reiniciar el formulario después de 2 segundos y cerrarlo
             setTimeout(() => {
                 setFormData({
-                    name: '',
-                    review: '',
+                    name: "",
+                    review: "",
                     rating: 5,
-                    serviceType: 'scissors'
-                });
-                setProfileImage(null);
-                setImagePreview(null);
-                setShowSuccess(false);
-                setIsSubmitting(false);
-                onClose();
-            }, 1500);
-
+                    serviceType: "scissors",
+                })
+                setProfileImage(null)
+                setImagePreview(null)
+                setShowSuccess(false)
+                setIsSubmitting(false)
+                onClose()
+            }, 1500)
         } catch (error) {
-            console.error('Error al enviar reseña:', error);
-            setError('Ha ocurrido un error al enviar tu reseña. Por favor intenta de nuevo.');
-            setIsSubmitting(false);
+            console.error("Error al enviar reseña:", error)
+            setError(
+                "Ha ocurrido un error al enviar tu reseña. Por favor intenta de nuevo.",
+            )
+            setIsSubmitting(false)
         }
-    };
+    }
 
-    if (!isOpen) return null;
+    if (!isOpen) return null
 
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
@@ -172,15 +180,22 @@ const ReviewForm = ({ isOpen, onClose, onSubmit }) => {
 
                 {/* Encabezado */}
                 <div className="text-textMain px-6 py-5 border rounded-t-2xl">
-                    <h3 className="text-h4 font-bold font-heading">Cuéntanos tu experiencia</h3>
-                    <p className="text-body-m mt-1">Nos encantaría saber tu opinión sobre nuestro servicio</p>
+                    <h3 className="text-h4 font-bold font-heading">
+                        Cuéntanos tu experiencia
+                    </h3>
+                    <p className="text-body-m mt-1">
+                        Nos encantaría saber tu opinión sobre nuestro servicio
+                    </p>
                 </div>
 
                 {/* Formulario */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     {/* Nombre */}
                     <div>
-                        <label htmlFor="name" className="block text-body-m font-medium text-textMain mb-1">
+                        <label
+                            htmlFor="name"
+                            className="block text-body-m font-medium text-textMain mb-1"
+                        >
                             Tu nombre
                         </label>
                         <input
@@ -220,7 +235,10 @@ const ReviewForm = ({ isOpen, onClose, onSubmit }) => {
                                         </button>
                                     </div>
                                 ) : (
-                                    <Camera size={28} className="text-gray-400" />
+                                    <Camera
+                                        size={28}
+                                        className="text-gray-400"
+                                    />
                                 )}
                             </div>
 
@@ -251,7 +269,10 @@ const ReviewForm = ({ isOpen, onClose, onSubmit }) => {
 
                     {/* Tipo de servicio */}
                     <div>
-                        <label htmlFor="serviceType" className="block text-body-m font-medium text-textMain mb-1">
+                        <label
+                            htmlFor="serviceType"
+                            className="block text-body-m font-medium text-textMain mb-1"
+                        >
                             Tipo de servicio
                         </label>
                         <select
@@ -261,7 +282,7 @@ const ReviewForm = ({ isOpen, onClose, onSubmit }) => {
                             onChange={handleChange}
                             className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors appearance-none bg-white"
                         >
-                            {serviceOptions.map(option => (
+                            {serviceOptions.map((option) => (
                                 <option key={option.value} value={option.value}>
                                     {option.label}
                                 </option>
@@ -281,14 +302,14 @@ const ReviewForm = ({ isOpen, onClose, onSubmit }) => {
                                     type="button"
                                     onClick={() => handleRatingChange(star)}
                                     className="focus:outline-none"
-                                    aria-label={`Calificar con ${star} ${star === 1 ? 'estrella' : 'estrellas'}`}
+                                    aria-label={`Calificar con ${star} ${star === 1 ? "estrella" : "estrellas"}`}
                                 >
                                     <Star
                                         size={28}
                                         className={`${
                                             star <= formData.rating
-                                                ? 'text-secondary fill-secondary'
-                                                : 'text-gray-300'
+                                                ? "text-secondary fill-secondary"
+                                                : "text-gray-300"
                                         } transition-colors`}
                                     />
                                 </button>
@@ -301,8 +322,12 @@ const ReviewForm = ({ isOpen, onClose, onSubmit }) => {
 
                     {/* Reseña */}
                     <div>
-                        <label htmlFor="review" className="block text-body-m font-medium text-textMain mb-1">
-                            Tu reseña <span className="text-xs text-gray-500 ml-1">
+                        <label
+                            htmlFor="review"
+                            className="block text-body-m font-medium text-textMain mb-1"
+                        >
+                            Tu reseña{" "}
+                            <span className="text-xs text-gray-500 ml-1">
                                 (entre {MIN_CHARS} y {MAX_CHARS} caracteres)
                             </span>
                         </label>
@@ -315,18 +340,25 @@ const ReviewForm = ({ isOpen, onClose, onSubmit }) => {
                             rows="4"
                             maxLength={MAX_CHARS}
                             className={`w-full px-4 py-3 border rounded-lg focus:ring-2 outline-none transition-colors resize-none ${
-                                charCount > 0 && (charCount < MIN_CHARS || charCount > MAX_CHARS)
-                                    ? 'border-red-300 focus:ring-red-200 focus:border-red-300'
-                                    : 'border-gray-200 focus:ring-primary focus:border-primary'
+                                charCount > 0 &&
+                                (charCount < MIN_CHARS || charCount > MAX_CHARS)
+                                    ? "border-red-300 focus:ring-red-200 focus:border-red-300"
+                                    : "border-gray-200 focus:ring-primary focus:border-primary"
                             }`}
                         ></textarea>
 
                         {/* Contador de caracteres */}
-                        <div className={`mt-1 text-right text-sm ${
-                            charCount === 0 ? 'text-gray-400' :
-                                charCount < MIN_CHARS ? 'text-red-500' :
-                                    charCount > MAX_CHARS * 0.9 ? 'text-yellow-600' : 'text-green-600'
-                        }`}>
+                        <div
+                            className={`mt-1 text-right text-sm ${
+                                charCount === 0
+                                    ? "text-gray-400"
+                                    : charCount < MIN_CHARS
+                                      ? "text-red-500"
+                                      : charCount > MAX_CHARS * 0.9
+                                        ? "text-yellow-600"
+                                        : "text-green-600"
+                            }`}
+                        >
                             {charCount} / {MAX_CHARS} caracteres
                         </div>
                     </div>
@@ -341,7 +373,8 @@ const ReviewForm = ({ isOpen, onClose, onSubmit }) => {
                     {/* Mensaje de éxito */}
                     {showSuccess && (
                         <div className="bg-green-50 text-green-600 px-4 py-3 rounded-lg text-body-s">
-                            ¡Gracias por tu reseña! Ha sido enviada correctamente.
+                            ¡Gracias por tu reseña! Ha sido enviada
+                            correctamente.
                         </div>
                     )}
 
@@ -349,26 +382,42 @@ const ReviewForm = ({ isOpen, onClose, onSubmit }) => {
                     <div className="flex justify-end">
                         <Button
                             type="dark"
-                            className={`px-6 py-3 rounded-full ${isSubmitting ? 'opacity-75 cursor-not-allowed' : ''}`}
+                            className={`px-6 py-3 rounded-full ${isSubmitting ? "opacity-75 cursor-not-allowed" : ""}`}
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? (
                                 <div className="flex items-center">
-                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    <svg
+                                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                        ></circle>
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                        ></path>
                                     </svg>
                                     Enviando...
                                 </div>
                             ) : (
-                                'Enviar reseña'
+                                "Enviar reseña"
                             )}
                         </Button>
                     </div>
                 </form>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default ReviewForm;
+export default ReviewForm

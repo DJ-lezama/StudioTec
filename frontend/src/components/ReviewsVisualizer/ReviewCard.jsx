@@ -1,11 +1,11 @@
-import React from "react";
-import { Star } from "lucide-react";
+import React from "react"
+import { Star } from "lucide-react"
 
 function ReviewCard({ image, name, review, icon: Icon, rating = 5 }) {
     const truncateText = (text, maxLength = 160) => {
-        if (text.length <= maxLength) return text;
-        return text.substring(0, maxLength).trim() + "...";
-    };
+        if (text.length <= maxLength) return text
+        return text.substring(0, maxLength).trim() + "..."
+    }
 
     return (
         <div className="flex flex-col bg-white rounded-3xl overflow-hidden w-full shadow-lg transition-transform duration-300 hover:shadow-xl hover:-translate-y-1 h-[500px]">
@@ -46,7 +46,7 @@ function ReviewCard({ image, name, review, icon: Icon, rating = 5 }) {
                 </div>
             </div>
         </div>
-    );
+    )
 }
 
-export default ReviewCard;
+export default ReviewCard

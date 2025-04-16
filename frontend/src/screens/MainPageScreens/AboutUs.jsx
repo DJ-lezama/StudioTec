@@ -1,6 +1,6 @@
-import React from 'react';
-import imagenEquipo from '../../assets/EquipoStudio.png';
-import { Scissors, Heart, Award, Users } from 'lucide-react';
+import React from "react"
+import imagenEquipo from "../../assets/EquipoStudio.png"
+import { Scissors, Heart, Award, Users } from "lucide-react"
 
 const AboutSection = () => {
     return (
@@ -24,15 +24,15 @@ const AboutSection = () => {
                             </h1>
                         </div>
 
-
-
                         {/* Texto debajo del título */}
                         <p className="text-white text-lg sm:text-xl md:text-2xl leading-relaxed px-4 sm:px-10 backdrop-blur-md bg-white/10 py-4 rounded-2xl shadow-md">
-                            Somos dos hermanas que convirtieron su pasión por la belleza en un espacio donde cada cliente recibe atención personalizada y servicios de la más alta calidad.
+                            Somos dos hermanas que convirtieron su pasión por la
+                            belleza en un espacio donde cada cliente recibe
+                            atención personalizada y servicios de la más alta
+                            calidad.
                         </p>
                     </div>
                 </div>
-
             </div>
 
             {/* Sección de valores */}
@@ -45,22 +45,30 @@ const AboutSection = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10">
                         {[
                             {
-                                icon: <Heart className="w-7 h-7 text-textMain" />,
+                                icon: (
+                                    <Heart className="w-7 h-7 text-textMain" />
+                                ),
                                 title: "Pasión",
                                 text: "Amamos lo que hacemos y nos dedicamos con entusiasmo a cada detalle de nuestro trabajo.",
                             },
                             {
-                                icon: <Award className="w-7 h-7 text-textMain" />,
+                                icon: (
+                                    <Award className="w-7 h-7 text-textMain" />
+                                ),
                                 title: "Excelencia",
                                 text: "Nos esforzamos por ofrecer servicios de la más alta calidad, superando siempre las expectativas.",
                             },
                             {
-                                icon: <Scissors className="w-7 h-7 text-textMain" />,
+                                icon: (
+                                    <Scissors className="w-7 h-7 text-textMain" />
+                                ),
                                 title: "Creatividad",
                                 text: "Buscamos innovar constantemente, incorporando las últimas tendencias y técnicas a nuestros servicios.",
                             },
                             {
-                                icon: <Users className="w-7 h-7 text-textMain" />,
+                                icon: (
+                                    <Users className="w-7 h-7 text-textMain" />
+                                ),
                                 title: "Comunidad",
                                 text: "Creamos relaciones cercanas con nuestras clientas, formando una comunidad basada en la confianza.",
                             },
@@ -84,7 +92,7 @@ const AboutSection = () => {
                 </div>
             </div>
         </section>
-    );
-};
+    )
+}
 
-export default AboutSection;
+export default AboutSection

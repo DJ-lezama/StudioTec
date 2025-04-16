@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import Button from "../../components/common/Button";
+import React, { useState } from "react"
+import Button from "../../components/common/Button"
 
 function CustomVisitForm() {
     const [form, setForm] = useState({
@@ -10,18 +10,18 @@ function CustomVisitForm() {
         preferredTime: "",
         serviceInterest: "",
         stylingReference: "",
-        comments: ""
-    });
+        comments: "",
+    })
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
-    };
+        const { name, value } = e.target
+        setForm((prev) => ({ ...prev, [name]: value }))
+    }
 
     const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log("Solicitud de visita personalizada enviada:", form);
-        alert("¡Gracias! Hemos recibido tu solicitud.");
+        e.preventDefault()
+        console.log("Solicitud de visita personalizada enviada:", form)
+        alert("¡Gracias! Hemos recibido tu solicitud.")
         setForm({
             name: "",
             phone: "",
@@ -30,9 +30,9 @@ function CustomVisitForm() {
             preferredTime: "",
             serviceInterest: "",
             stylingReference: "",
-            comments: ""
-        });
-    };
+            comments: "",
+        })
+    }
 
     return (
         <div className="min-h-screen pt-32 px-6 pb-24 flex items-center justify-center bg-primaryLight">
@@ -118,7 +118,7 @@ function CustomVisitForm() {
                 </form>
             </div>
         </div>
-    );
+    )
 }
 
-export default CustomVisitForm;
+export default CustomVisitForm

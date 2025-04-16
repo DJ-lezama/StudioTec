@@ -1,18 +1,18 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom'; // Importamos useNavigate para la redirección
-import fondo from '../../assets/MainView1.png';
-import decoracion from '../../assets/wave.svg';
-import Button from '../../components/common/Button.jsx';
-import { ArrowRight } from 'lucide-react';
+import React from "react"
+import { useNavigate } from "react-router-dom" // Importamos useNavigate para la redirección
+import fondo from "../../assets/MainView1.png"
+import decoracion from "../../assets/wave.svg"
+import Button from "../../components/common/Button.jsx"
+import { ArrowRight } from "lucide-react"
 
 function MainView() {
     // Utilizamos el hook useNavigate para obtener la función de navegación
-    const navigate = useNavigate();
+    const navigate = useNavigate()
 
     // Función para manejar la redirección a la página de agendar cita
     const handleBookingClick = () => {
-        navigate('/agendar');
-    };
+        navigate("/agendar")
+    }
 
     return (
         <div className="relative min-h-screen w-full overflow-hidden pt-16">
@@ -55,7 +55,7 @@ function MainView() {
                 </div>
             </div>
         </div>
-    );
+    )
 }
 
-export default MainView;
+export default MainView

@@ -1,7 +1,7 @@
-import React from "react";
-import Logo from "./Logo";
-import NavMenu from "./NavMenu";
-import UserProfile from "./UserProfile";
+import React from "react"
+import Logo from "./Logo"
+import NavMenu from "./NavMenu"
+import UserProfile from "./UserProfile"
 
 function Navbar() {
     return (
@@ -12,7 +12,7 @@ function Navbar() {
             </div>
             <UserProfile />
         </header>
-    );
+    )
 }
 
-export default Navbar;
+export default Navbar
