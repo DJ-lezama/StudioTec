@@ -1,54 +1,46 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../screens/MainPageScreens/AuthenticationScreens/AuthContext.jsx';
+import {Navigate, useLocation} from 'react-router-dom';
+import useAuth from "../features/auth/hooks/useAuth.js";
 
-// Componente que protege rutas para usuarios autenticados
-function ProtectedRoute({ children }) {
-    const { currentUser, loading } = useAuth();
+function ProtectedRoute({children}) {
+    const {currentUser, loading} = useAuth();
+    const location = useLocation();
 
-    // Mostrar un indicador de carga mientras verificamos el estado de autenticación
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center pt-20">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-secondary"></div>
             </div>
         );
     }
 
-    // Redireccionar a la página de autenticación si no hay usuario
     if (!currentUser) {
-        return <Navigate to="/auth" />;
+        return <Navigate to="/auth" state={{from: location}} replace/>;
     }
 
-    // Renderizar el contenido si el usuario está autenticado
     return children;
 }
 
-// Componente que protege rutas para estilistas
-function StylistRoute({ children }) {
-    const { currentUser, loading } = useAuth();
+function StylistRoute({children}) {
+    const {currentUser, loading} = useAuth();
+    const location = useLocation();
 
-    // Mostrar un indicador de carga mientras verificamos el estado de autenticación
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center pt-20">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-secondary"></div>
             </div>
         );
     }
 
-    // Redireccionar a la página de autenticación si no hay usuario
     if (!currentUser) {
-        return <Navigate to="/auth" />;
+        return <Navigate to="/auth" state={{from: location}} replace/>;
     }
 
-    // Redireccionar a la página principal si no es estilista
     if (currentUser.role !== 'stylist') {
-        return <Navigate to="/" />;
+        return <Navigate to="/" replace/>;
     }
 
-    // Renderizar el contenido si el usuario es estilista
     return children;
 }
 
-export { ProtectedRoute, StylistRoute };
+export {ProtectedRoute, StylistRoute};

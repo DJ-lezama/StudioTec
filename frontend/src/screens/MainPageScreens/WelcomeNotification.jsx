@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from './AuthenticationScreens/AuthContext.jsx';
+import React, {useEffect, useState} from 'react';
+import useAuth from "../../features/auth/hooks/useAuth.js";
 
 function WelcomeNotification() {
     const [visible, setVisible] = useState(false);
-    const { currentUser } = useAuth();
+    const {currentUser} = useAuth();
 
     useEffect(() => {
         // Si hay un usuario y es un inicio de sesión reciente (primeros 5 segundos)
@@ -22,7 +22,8 @@ function WelcomeNotification() {
     if (!visible) return null;
 
     return (
-        <div className="fixed bottom-4 right-4 bg-white shadow-lg rounded-lg p-4 max-w-xs z-50 border-l-4 border-secondary">
+        <div
+            className="fixed bottom-4 right-4 bg-white shadow-lg rounded-lg p-4 max-w-xs z-50 border-l-4 border-secondary">
             <div className="flex items-start">
                 <div>
                     <h3 className="font-medium text-textMain">¡Bienvenido/a {currentUser.name}!</h3>
@@ -33,7 +34,8 @@ function WelcomeNotification() {
                     className="ml-4 text-gray-400 hover:text-gray-600"
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                              d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import LoginScreen from "./LoginScreen";
 import RegisterScreen from "./RegisterScreen";
 
@@ -12,9 +12,9 @@ function AuthScreen() {
     return (
         <div className="pt-16">
             {showLogin ? (
-                <LoginScreen onSwitch={toggleView} />
+                <LoginScreen onSwitch={toggleView}/>
             ) : (
-                <RegisterScreen onSwitch={toggleView} />
+                <RegisterScreen onSwitch={toggleView}/>
             )}
         </div>
     );

@@ -1,8 +1,9 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "./AuthContext";
+import React, {useState} from "react";
+import {useNavigate} from "react-router-dom";
 import Button from "../../../components/common/Button";
-function RegisterScreen({ onSwitch }) {
+import useAuth from "../../../features/auth/hooks/useAuth.js";
+
+function RegisterScreen({onSwitch}) {
     const [form, setForm] = useState({
         name: "",
         email: "",
@@ -10,46 +11,64 @@ function RegisterScreen({ onSwitch }) {
         confirmPassword: ""
     });
     const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [loadingAuth, setLoadingAuth] = useState(false);
     const navigate = useNavigate();
-    const { register } = useAuth();
+    const {register} = useAuth();
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
+        const {name, value} = e.target;
+        setForm((prev) => ({...prev, [name]: value}));
         setError("");
     };
 
     const validateForm = () => {
+        if (!form.name.trim()) {
+            setError("El nombre es obligatorio.");
+            return false;
+        }
+        if (!form.email.trim()) {
+            setError("El correo electrónico es obligatorio.");
+            return false;
+        }
         if (form.password !== form.confirmPassword) {
-            setError("Las contraseñas no coinciden");
+            setError("Las contraseñas no coinciden.");
             return false;
         }
-
+        // Firebase enforces password length (min 6) automatically,
+        // but we can keep a check here for immediate feedback.
         if (form.password.length < 6) {
-            setError("La contraseña debe tener al menos 6 caracteres");
+            setError("La contraseña debe tener al menos 6 caracteres.");
             return false;
         }
-
         return true;
     };
 
     const handleRegister = async (e) => {
         e.preventDefault();
-
         if (!validateForm()) return;
 
-        setLoading(true);
+        setLoadingAuth(true);
         setError("");
-
         try {
             await register(form.name, form.email, form.password);
-            navigate("/"); // Redirige al inicio después del registro exitoso
+            navigate("/"); // Redirect to home page after successful registration
         } catch (err) {
-            setError("Error al crear la cuenta. Inténtalo de nuevo.");
-            console.error(err);
+            console.error("Firebase Registration Error:", err);
+            switch (err.code) {
+                case 'auth/email-already-in-use':
+                    setError("Este correo electrónico ya está registrado.");
+                    break;
+                case 'auth/invalid-email':
+                    setError("El formato del correo electrónico no es válido.");
+                    break;
+                case 'auth/weak-password':
+                    setError("La contraseña es demasiado débil. Debe tener al menos 6 caracteres.");
+                    break;
+                default:
+                    setError("Error al crear la cuenta. Inténtalo de nuevo más tarde.");
+            }
         } finally {
-            setLoading(false);
+            setLoadingAuth(false);
         }
     };
 
@@ -59,7 +78,7 @@ function RegisterScreen({ onSwitch }) {
                 <h2 className="text-h3 font-heading font-bold text-textMain mb-6">Crear cuenta</h2>
 
                 {error && (
-                    <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4">
+                    <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">
                         {error}
                     </div>
                 )}
@@ -99,7 +118,7 @@ function RegisterScreen({ onSwitch }) {
 
                     <div>
                         <label htmlFor="password" className="block text-sm font-medium text-textMain mb-1">
-                            Contraseña
+                            Contraseña (mín. 6 caracteres)
                         </label>
                         <input
                             id="password"
@@ -129,8 +148,8 @@ function RegisterScreen({ onSwitch }) {
                         />
                     </div>
 
-                    <Button type="dark" className="w-full" disabled={loading}>
-                        {loading ? "Creando cuenta..." : "Registrarse"}
+                    <Button type="dark" className="w-full" disabled={loadingAuth}>
+                        {loadingAuth ? "Creando cuenta..." : "Registrarse"}
                     </Button>
                 </form>
 

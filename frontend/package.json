@@ -10,11 +10,12 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "firebase": "^11.6.0",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.483.0",
     "prop-types": "^15.8.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "leaflet": "^1.9.4",
     "react-leaflet": "^5.0.0"
   },
   "devDependencies": {
