@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "./AuthenticationScreens/AuthContext.jsx";
+import React, {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
 import Button from "../../components/common/Button";
-import { User, Calendar, MapPin, LogOut, ChevronRight, Settings, Edit3, Check, X, Clock, ChevronLeft, ChevronDown } from "lucide-react";
+import {Calendar, Check, ChevronLeft, ChevronRight, Edit3, LogOut, Settings, User, X} from "lucide-react";
+import useAuth from "../../features/auth/hooks/useAuth.js";
 
 function ProfileScreen() {
-    const { currentUser, logout } = useAuth();
+    const {currentUser, logout} = useAuth();
     const navigate = useNavigate();
 
     const [isEditing, setIsEditing] = useState(false);
@@ -59,8 +59,8 @@ function ProfileScreen() {
     if (!currentUser) return null;
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
+        const {name, value} = e.target;
+        setForm((prev) => ({...prev, [name]: value}));
     };
 
     const handleSave = () => {
@@ -93,7 +93,7 @@ function ProfileScreen() {
     };
 
     const formatDate = (dateString) => {
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const options = {year: 'numeric', month: 'long', day: 'numeric'};
         return new Date(dateString).toLocaleDateString('es-MX', options);
     };
 
@@ -147,7 +147,7 @@ function ProfileScreen() {
 
         const updated = appointments.map(apt =>
             apt.id === selectedAppointment.id
-                ? { ...apt, date: selectedDate.toISOString().split("T")[0], time: selectedTime }
+                ? {...apt, date: selectedDate.toISOString().split("T")[0], time: selectedTime}
                 : apt
         );
 
@@ -162,7 +162,7 @@ function ProfileScreen() {
     const renderMenuItems = () => {
         const baseMenuItems = [
             {
-                icon: <User size={20} />,
+                icon: <User size={20}/>,
                 label: "Información personal",
                 action: () => {
                     setIsEditing(false);
@@ -175,14 +175,14 @@ function ProfileScreen() {
         // Agregar opciones específicas para clientes
         if (currentUser.role === "client") {
             baseMenuItems.push({
-                icon: <Calendar size={20} />,
+                icon: <Calendar size={20}/>,
                 label: "Mis citas",
                 action: () => setActiveTab("appointments"),
                 active: activeTab === "appointments"
             });
 
             baseMenuItems.push({
-                icon: <Settings size={20} />,
+                icon: <Settings size={20}/>,
                 label: "Preferencias",
                 action: () => setActiveTab("preferences"),
                 active: activeTab === "preferences"
@@ -192,7 +192,7 @@ function ProfileScreen() {
         // Agregar opción para estilistas
         if (currentUser.role === "stylist") {
             baseMenuItems.push({
-                icon: <ChevronRight size={20} />,
+                icon: <ChevronRight size={20}/>,
                 label: "Panel de estilista",
                 action: () => navigate("/stylist/dashboard"),
                 active: false
@@ -208,7 +208,8 @@ function ProfileScreen() {
                 <div className="md:flex">
                     {/* Cabecera del perfil (visible en móvil) */}
                     <div className="md:hidden bg-primary/10 p-6 flex items-center space-x-4 border-b border-gray-100">
-                        <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center text-white text-xl font-bold">
+                        <div
+                            className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center text-white text-xl font-bold">
                             {currentUser.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
@@ -221,7 +222,8 @@ function ProfileScreen() {
                     <aside className="md:w-80 bg-secondary text-white p-6 md:p-8">
                         {/* Info de perfil (visible en desktop) */}
                         <div className="hidden md:flex md:flex-col md:items-center text-center mb-8">
-                            <div className="w-24 h-24 rounded-full bg-primary shadow-lg flex items-center justify-center text-textMain text-3xl font-bold mb-4">
+                            <div
+                                className="w-24 h-24 rounded-full bg-primary shadow-lg flex items-center justify-center text-textMain text-3xl font-bold mb-4">
                                 {currentUser.name.charAt(0).toUpperCase()}
                             </div>
                             <h2 className="text-xl font-semibold">{currentUser.name}</h2>
@@ -253,7 +255,7 @@ function ProfileScreen() {
                                 className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-textMain hover:text-white transition-colors mt-6"
                                 onClick={handleLogout}
                             >
-                                <LogOut size={20} />
+                                <LogOut size={20}/>
                                 <span>Cerrar sesión</span>
                             </button>
                         </nav>
@@ -273,21 +275,25 @@ function ProfileScreen() {
                                             className="flex items-center gap-2"
                                             onClick={() => setIsEditing(true)}
                                         >
-                                            <Edit3 size={16} />
+                                            <Edit3 size={16}/>
                                             Editar
                                         </Button>
                                     )}
                                 </div>
 
                                 {showSuccess && (
-                                    <div className="mb-6 bg-green-50 text-green-700 px-4 py-3 rounded-lg flex items-center">
-                                        <Check size={20} className="mr-2" />
+                                    <div
+                                        className="mb-6 bg-green-50 text-green-700 px-4 py-3 rounded-lg flex items-center">
+                                        <Check size={20} className="mr-2"/>
                                         Información actualizada correctamente
                                     </div>
                                 )}
 
                                 {isEditing ? (
-                                    <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+                                    <form className="space-y-5" onSubmit={(e) => {
+                                        e.preventDefault();
+                                        handleSave();
+                                    }}>
                                         <div>
                                             <label className="block text-sm font-medium text-textMain mb-2">
                                                 Nombre completo
@@ -354,15 +360,19 @@ function ProfileScreen() {
                                             >
                                                 {isLoading ? (
                                                     <>
-                                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                                             xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                             viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10"
+                                                                    stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor"
+                                                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                         </svg>
                                                         Guardando...
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <Check size={16} className="mr-2" />
+                                                        <Check size={16} className="mr-2"/>
                                                         Guardar cambios
                                                     </>
                                                 )}
@@ -372,17 +382,19 @@ function ProfileScreen() {
                                                 onClick={() => setIsEditing(false)}
                                                 className="flex items-center"
                                             >
-                                                <X size={16} className="mr-2" />
+                                                <X size={16} className="mr-2"/>
                                                 Cancelar
                                             </Button>
                                         </div>
                                     </form>
                                 ) : (
-                                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                                    <div
+                                        className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                                         <div className="grid grid-cols-1 divide-y divide-gray-100">
                                             <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
                                                 <div className="sm:col-span-1">
-                                                    <h4 className="text-sm font-medium text-gray-500">Nombre completo</h4>
+                                                    <h4 className="text-sm font-medium text-gray-500">Nombre
+                                                        completo</h4>
                                                 </div>
                                                 <div className="sm:col-span-2">
                                                     <p className="text-body-m text-textMain">{currentUser.name}</p>
@@ -391,7 +403,8 @@ function ProfileScreen() {
 
                                             <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
                                                 <div className="sm:col-span-1">
-                                                    <h4 className="text-sm font-medium text-gray-500">Correo electrónico</h4>
+                                                    <h4 className="text-sm font-medium text-gray-500">Correo
+                                                        electrónico</h4>
                                                 </div>
                                                 <div className="sm:col-span-2">
                                                     <p className="text-body-m text-textMain">{currentUser.email}</p>
@@ -425,7 +438,8 @@ function ProfileScreen() {
                                                     <h4 className="text-sm font-medium text-gray-500">Rol</h4>
                                                 </div>
                                                 <div className="sm:col-span-2">
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-secondary capitalize">
+                                                    <span
+                                                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-secondary capitalize">
                                                         {currentUser.role === "stylist" ? "Estilista" : "Cliente"}
                                                     </span>
                                                 </div>
@@ -442,7 +456,8 @@ function ProfileScreen() {
 
                                 {upcomingAppointments.length > 0 ? (
                                     <div className="mb-8">
-                                        <h4 className="text-subtitle-m font-medium text-textMain mb-4">Próximas citas</h4>
+                                        <h4 className="text-subtitle-m font-medium text-textMain mb-4">Próximas
+                                            citas</h4>
                                         <div className="grid gap-4">
                                             {upcomingAppointments.map(appointment => (
                                                 <div
@@ -451,7 +466,8 @@ function ProfileScreen() {
                                                 >
                                                     <div className="flex-1">
                                                         <p className="font-semibold text-textMain">{appointment.service}</p>
-                                                        <div className="mt-1 flex flex-wrap gap-x-4 text-sm text-textMain/70">
+                                                        <div
+                                                            className="mt-1 flex flex-wrap gap-x-4 text-sm text-textMain/70">
                                                             <span>{formatDate(appointment.date)} - {appointment.time}</span>
                                                             <span>• {appointment.stylist}</span>
                                                         </div>
@@ -480,7 +496,7 @@ function ProfileScreen() {
                                             onClick={() => navigate("/agendar")}
                                             className="flex items-center mx-auto"
                                         >
-                                            <Calendar size={16} className="mr-2" />
+                                            <Calendar size={16} className="mr-2"/>
                                             Agendar una cita
                                         </Button>
                                     </div>
@@ -488,7 +504,8 @@ function ProfileScreen() {
 
                                 {pastAppointments.length > 0 && (
                                     <div>
-                                        <h4 className="text-subtitle-m font-medium text-textMain mb-4">Historial de citas</h4>
+                                        <h4 className="text-subtitle-m font-medium text-textMain mb-4">Historial de
+                                            citas</h4>
                                         <div className="overflow-hidden rounded-lg border border-gray-200">
                                             <table className="min-w-full divide-y divide-gray-200">
                                                 <thead className="bg-gray-50">
@@ -526,7 +543,8 @@ function ProfileScreen() {
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                            <Button type="transparent" className="text-xs">Reservar similar</Button>
+                                                            <Button type="transparent" className="text-xs">Reservar
+                                                                similar</Button>
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -542,32 +560,40 @@ function ProfileScreen() {
                             <div>
                                 <h3 className="text-h4 font-heading font-semibold text-textMain mb-6">Preferencias</h3>
 
-                                <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+                                <div
+                                    className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-6">
                                     <div className="p-6 border-b border-gray-100">
                                         <h4 className="text-subtitle-m font-medium text-textMain mb-2">Notificaciones</h4>
-                                        <p className="text-sm text-gray-600">Configura cómo quieres recibir notificaciones sobre tus citas y promociones.</p>
+                                        <p className="text-sm text-gray-600">Configura cómo quieres recibir
+                                            notificaciones sobre tus citas y promociones.</p>
                                     </div>
 
                                     <div className="p-6 space-y-4">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <h5 className="text-sm font-medium text-textMain">Recordatorios de cita</h5>
-                                                <p className="text-xs text-gray-500">Recibe un recordatorio 24 horas antes de tu cita</p>
+                                                <h5 className="text-sm font-medium text-textMain">Recordatorios de
+                                                    cita</h5>
+                                                <p className="text-xs text-gray-500">Recibe un recordatorio 24 horas
+                                                    antes de tu cita</p>
                                             </div>
                                             <label className="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" className="sr-only peer" defaultChecked />
-                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+                                                <input type="checkbox" className="sr-only peer" defaultChecked/>
+                                                <div
+                                                    className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
                                             </label>
                                         </div>
 
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <h5 className="text-sm font-medium text-textMain">Promociones y ofertas</h5>
-                                                <p className="text-xs text-gray-500">Recibe notificaciones sobre promociones especiales</p>
+                                                <h5 className="text-sm font-medium text-textMain">Promociones y
+                                                    ofertas</h5>
+                                                <p className="text-xs text-gray-500">Recibe notificaciones sobre
+                                                    promociones especiales</p>
                                             </div>
                                             <label className="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" className="sr-only peer" />
-                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+                                                <input type="checkbox" className="sr-only peer"/>
+                                                <div
+                                                    className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
                                             </label>
                                         </div>
                                     </div>
@@ -575,15 +601,18 @@ function ProfileScreen() {
 
                                 <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                                     <div className="p-6 border-b border-gray-100">
-                                        <h4 className="text-subtitle-m font-medium text-textMain mb-2">Preferencias de servicio</h4>
-                                        <p className="text-sm text-gray-600">Personaliza tus preferencias para mejorar tu experiencia en cada visita.</p>
+                                        <h4 className="text-subtitle-m font-medium text-textMain mb-2">Preferencias de
+                                            servicio</h4>
+                                        <p className="text-sm text-gray-600">Personaliza tus preferencias para mejorar
+                                            tu experiencia en cada visita.</p>
                                     </div>
 
                                     <div className="p-6">
                                         <label className="block text-sm font-medium text-textMain mb-2">
                                             Estilista preferido
                                         </label>
-                                        <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                                        <select
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
                                             <option value="">Cualquiera disponible</option>
                                             <option value="stylist-a">Estilista A</option>
                                             <option value="stylist-b">Estilista B</option>
@@ -604,7 +633,8 @@ function ProfileScreen() {
             {/* Modal de reprogramación de cita */}
             {showRescheduleModal && selectedAppointment && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4 relative max-h-[90vh] overflow-y-auto">
+                    <div
+                        className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4 relative max-h-[90vh] overflow-y-auto">
                         {/* Cabecera del modal */}
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-h5 font-heading font-semibold text-textMain">Reprogramar cita</h3>
@@ -612,7 +642,7 @@ function ProfileScreen() {
                                 onClick={() => setShowRescheduleModal(false)}
                                 className="text-gray-500 hover:text-textMain"
                             >
-                                <X size={20} />
+                                <X size={20}/>
                             </button>
                         </div>
 
@@ -637,18 +667,18 @@ function ProfileScreen() {
                                     onClick={prevMonth}
                                     className="p-1 rounded-full hover:bg-gray-100"
                                 >
-                                    <ChevronLeft size={20} />
+                                    <ChevronLeft size={20}/>
                                 </button>
 
                                 <span className="text-textMain font-medium">
-                                    {currentMonth.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })}
+                                    {currentMonth.toLocaleDateString('es-MX', {month: 'long', year: 'numeric'})}
                                 </span>
 
                                 <button
                                     onClick={nextMonth}
                                     className="p-1 rounded-full hover:bg-gray-100"
                                 >
-                                    <ChevronRight size={20} />
+                                    <ChevronRight size={20}/>
                                 </button>
                             </div>
 
@@ -719,7 +749,10 @@ function ProfileScreen() {
                         {selectedDate && (
                             <div className="mb-6">
                                 <h4 className="text-subtitle-s font-medium text-textMain mb-3">
-                                    Horarios disponibles para {selectedDate.toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}
+                                    Horarios disponibles para {selectedDate.toLocaleDateString('es-MX', {
+                                    day: 'numeric',
+                                    month: 'long'
+                                })}
                                 </h4>
 
                                 <div className="grid grid-cols-3 gap-2">
@@ -754,7 +787,7 @@ function ProfileScreen() {
                                 disabled={!selectedDate || !selectedTime}
                                 className="flex items-center"
                             >
-                                <Calendar size={16} className="mr-2" />
+                                <Calendar size={16} className="mr-2"/>
                                 Confirmar cambio
                             </Button>
                         </div>
