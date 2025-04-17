@@ -46,20 +46,35 @@ const AppointmentsTab = ({
                 b.requestedDateTime.toDate() - a.requestedDateTime.toDate(),
         )
 
+    const handleBookSimilar = (appointment) => {
+        if (!appointment || !appointment.serviceId || !appointment.stylistId) {
+            console.warn("Missing data for 'Book Similar'", appointment)
+            return
+        }
+        console.log(
+            `Booking similar for: Service ${appointment.serviceId}, Stylist ${appointment.stylistId}`,
+        )
+        navigate("/agendar", {
+            state: {
+                serviceId: appointment.serviceId,
+                stylistId: appointment.stylistId,
+            },
+        })
+    }
+
     const renderContent = () => {
         if (isLoading) {
             return (
                 <div className="flex justify-center items-center p-10 text-gray-600">
-                    <Loader2 className="w-8 h-8 text-secondary animate-spin mr-3" />
+                    <Loader2 className="w-8 h-8 text-secondary animate-spin mr-3" />{" "}
                     <span>Cargando tus citas...</span>
                 </div>
             )
         }
-
         if (error) {
             return (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg text-center flex items-center justify-center">
-                    <AlertTriangle className="w-5 h-5 mr-2" />
+                    <AlertTriangle className="w-5 h-5 mr-2" />{" "}
                     <span>{error}</span>
                 </div>
             )
@@ -67,10 +82,11 @@ const AppointmentsTab = ({
 
         return (
             <>
-                {/* Upcoming Appointments */}
+                {/* Upcoming Appointments Section */}
                 <div className="mb-8">
                     <h4 className="text-subtitle-m font-medium text-textMain mb-4">
-                        Próximas Citas y Pendientes
+                        {" "}
+                        Próximas Citas y Pendientes{" "}
                     </h4>
                     {upcomingAppointments.length > 0 ? (
                         <div className="grid gap-4">
@@ -93,21 +109,22 @@ const AppointmentsTab = ({
                     ) : (
                         <div className="bg-primary/5 rounded-lg p-6 text-center">
                             <p className="text-gray-600 mb-4">
-                                No tienes citas próximas o pendientes.
-                            </p>
+                                {" "}
+                                No tienes citas próximas o pendientes.{" "}
+                            </p>{" "}
                             <Button
                                 type="dark"
                                 onClick={() => navigate("/agendar")}
                                 className="flex items-center mx-auto"
                             >
-                                <Calendar size={16} className="mr-2" />
-                                Agendar una cita
+                                <Calendar size={16} className="mr-2" /> Agendar
+                                una cita{" "}
                             </Button>
                         </div>
                     )}
                 </div>
 
-                {/* Past Appointments */}
+                {/* Past Appointments Section */}
                 {pastAppointments.length > 0 && (
                     <div>
                         <h4 className="text-subtitle-m font-medium text-textMain mb-4">
@@ -116,6 +133,7 @@ const AppointmentsTab = ({
                         <AppointmentTable
                             appointments={pastAppointments}
                             formatDate={formatDate}
+                            onBookSimilar={handleBookSimilar}
                         />
                     </div>
                 )}

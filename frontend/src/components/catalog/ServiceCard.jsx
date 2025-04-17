@@ -1,21 +1,19 @@
 import React from "react"
 
-/**
- * Componente para mostrar una tarjeta de servicio individual
- * @param {string} title - Título del servicio
- * @param {string} description - Descripción del servicio
- * @param {string} price - Precio del servicio
- * @param {string} duration - Duración del servicio
- * @param {string} imageUrl - URL de la imagen
- */
 function ServiceCard({ title, description, price, duration, imageUrl }) {
+    const PLACEHOLDER_IMAGE =
+        "https://i0.wp.com/port2flavors.com/wp-content/uploads/2022/07/placeholder-614.png?fit=1200%2C800&ssl=1"
+
     return (
         <div className="bg-primaryLight rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
             <div className="relative overflow-hidden h-48">
                 <img
-                    src={imageUrl}
+                    src={imageUrl || PLACEHOLDER_IMAGE}
                     alt={title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={(e) => {
+                        e.target.src = PLACEHOLDER_IMAGE
+                    }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-textMain/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>

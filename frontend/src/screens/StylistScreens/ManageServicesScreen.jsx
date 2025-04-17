@@ -458,13 +458,13 @@ const ManageServicesScreen = () => {
                                             <img
                                                 src={
                                                     service.imageUrl ||
-                                                    "https://via.placeholder.com/80?text=N/A"
+                                                    "https://i0.wp.com/port2flavors.com/wp-content/uploads/2022/07/placeholder-614.png?fit=1200%2C800&ssl=1"
                                                 }
                                                 alt={service.name}
                                                 className="w-full h-full object-cover"
                                                 onError={(e) => {
                                                     e.target.src =
-                                                        "https://via.placeholder.com/80?text=N/A"
+                                                        "https://i0.wp.com/port2flavors.com/wp-content/uploads/2022/07/placeholder-614.png?fit=1200%2C800&ssl=1"
                                                 }}
                                             />
                                         </div>
