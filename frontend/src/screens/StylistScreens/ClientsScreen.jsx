@@ -1,6 +1,6 @@
 // src/screens/StylistScreens/ClientsScreen.jsx
 import React, { useState } from "react"
-import ClientOverlay from "../../components/StylistDashboard/ClientOverlay.jsx"
+import ClientOverlay from "../../components/stylist_dashboard/ClientOverlay.jsx"
 import Button from "../../components/common/Button.jsx"
 import { useNavigate } from "react-router-dom"
 

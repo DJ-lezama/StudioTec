@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import catalogData, {
     categoryConfig,
-} from "../../components/CatalogComponents/catalogData"
+} from "../../components/catalog/catalogData"
 import ProgressSteps from "../../components/booking/ProgressSteps"
 import ServiceSelectionStep from "../../components/booking/steps/ServiceSelectionStep"
 import StylistSelectionStep from "../../components/booking/steps/StylistSelectionStep"

@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import ReviewsCarousel from "../../components/ReviewsVisualizer/ReviewsCarousel.jsx"
+import ReviewsCarousel from "../../components/reviews/ReviewsCarousel.jsx"
 import ReviewForm from "./ReviewForm.jsx"
 import Button from "../../components/common/Button.jsx"
 import { Plus } from "lucide-react"

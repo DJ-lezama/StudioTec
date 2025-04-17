@@ -1,6 +1,6 @@
 // src/screens/StylistScreens/ScheduleScreen.jsx
 import React from "react"
-import ScheduleVisualizer from "../../components/ScheduleVisualizer/ScheduleVisualizer"
+import ScheduleVisualizer from "../../components/schedule/ScheduleVisualizer"
 import Button from "../../components/common/Button"
 import { useNavigate } from "react-router-dom"
 

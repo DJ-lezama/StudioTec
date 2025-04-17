@@ -1,6 +1,6 @@
 // src/test/ReviewCarousel.test.jsx
 import { render, screen } from "@testing-library/react"
-import ReviewsCarousel from "../components/ReviewsVisualizer/ReviewsCarousel.jsx"
+import ReviewsCarousel from "../components/reviews/ReviewsCarousel.jsx"
 
 describe("ReviewsCarousel", () => {
     it("renders all reviews", () => {

@@ -1,6 +1,6 @@
 import Button from "./components/common/Button.jsx"
-import Navbar from "./components/Navbar/Navbar.jsx"
-import ReviewsCarousel from "./components/ReviewsVisualizer/ReviewsCarousel.jsx"
+import Navbar from "./components/navbar/Navbar.jsx"
+import ReviewsCarousel from "./components/reviews/ReviewsCarousel.jsx"
 import React, { useState } from "react"
 import {
     BrowserRouter as Router,

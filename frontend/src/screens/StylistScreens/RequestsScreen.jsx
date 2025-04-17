@@ -1,9 +1,9 @@
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { AlertTriangle, Loader2 } from "lucide-react"
-import RequestReviewOverlay from "../../components/ScheduleVisualizer/AppointmentOverlay.jsx"
+import RequestReviewOverlay from "../../components/schedule/AppointmentOverlay.jsx"
 import Button from "../../components/common/Button.jsx"
-import RequestCardCarousel from "../../components/RequestsVisualizer/RequestCardCarousel.jsx"
+import RequestCardCarousel from "../../components/requests/RequestCardCarousel.jsx"
 import { usePendingRequests } from "../../features/booking/hooks/usePendingRequests.js"
 
 const RequestsScreen = () => {

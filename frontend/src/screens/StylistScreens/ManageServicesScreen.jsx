@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import Button from "../../components/common/Button"
 import { useNavigate } from "react-router-dom"
-import ServiceCreationOverlay from "../../components/ServicesVisualizer/ServiceCreationOverlay.jsx"
+import ServiceCreationOverlay from "../../components/services/ServiceCreationOverlay.jsx"
 import {
     AlertTriangle,
     Check,
