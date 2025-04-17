@@ -22,7 +22,7 @@ import AlternativeTimesCalendar from "./AlternativeTimesCalendar"
 
 const AppointmentOverlay = ({ appointmentId, onClose }) => {
     const [appointmentData, setAppointmentData] = useState(null)
-    const [isLoadingData, setIsLoadingData] = useState(false)
+    const [isLoadingData, setIsLoadingData] = useState(true)
     const [fetchError, setFetchError] = useState(null)
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
     const [updateError, setUpdateError] = useState(null)
@@ -96,7 +96,6 @@ const AppointmentOverlay = ({ appointmentId, onClose }) => {
                     })
                 } catch (formatErr) {
                     console.warn("Error formatting JS Date:", formatErr)
-                    return "Fecha inválida (JS Date)"
                 }
             }
             console.warn(
@@ -121,6 +120,7 @@ const AppointmentOverlay = ({ appointmentId, onClose }) => {
             setUpdateError(
                 `Error al ${newStatus === "accepted" ? "aceptar" : "rechazar"} la solicitud. Intenta de nuevo.`,
             )
+            // TODO: Optionally show toast error
         } finally {
             setIsUpdatingStatus(false)
         }
@@ -157,21 +157,24 @@ const AppointmentOverlay = ({ appointmentId, onClose }) => {
         setSuggestionError(null)
         setUpdateError(null)
 
-        try {
-            const [year, month, day] = selectedSuggestionDateTime.date
-                .split("-")
-                .map(Number)
-            const [hours, minutes] = selectedSuggestionDateTime.time
-                .split(":")
-                .map(Number)
-            const suggestedDate = new Date(year, month - 1, day, hours, minutes)
+        const [year, month, day] = selectedSuggestionDateTime.date
+            .split("-")
+            .map(Number)
+        const [hours, minutes] = selectedSuggestionDateTime.time
+            .split(":")
+            .map(Number)
+        const suggestedDate = new Date(year, month - 1, day, hours, minutes)
 
+        if (isNaN(suggestedDate))
+            throw new Error("Fecha/hora seleccionada inválida.")
+
+        try {
             await updateAppointmentSuggestion(
                 appointmentId,
                 suggestedDate,
                 suggestionComment,
             )
-
+            // TODO: Optionally show toast success
             console.log("Suggestion sent successfully!")
             onClose()
         } catch (error) {
@@ -179,11 +182,16 @@ const AppointmentOverlay = ({ appointmentId, onClose }) => {
             setSuggestionError(
                 `Error al enviar la sugerencia: ${error.message || "Intenta de nuevo."}`,
             )
+            // TODO: Optionally show toast error
         } finally {
             setIsSendingSuggestion(false)
         }
     }
+
     const isActionInProgress = isUpdatingStatus || isSendingSuggestion
+
+    const serviceDuration = appointmentData?.duration
+    const stylistId = appointmentData?.stylistId
 
     if (!appointmentId) return null
 
@@ -231,7 +239,8 @@ const AppointmentOverlay = ({ appointmentId, onClose }) => {
                             {/* Appointment Info Section */}
                             <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
                                 <h3 className="text-body-l font-semibold text-textMain mb-3 border-b pb-2">
-                                    Información de la cita
+                                    {" "}
+                                    Información de la cita{" "}
                                 </h3>
                                 <div className="space-y-2 text-body-m text-textMain">
                                     <p>
@@ -254,21 +263,29 @@ const AppointmentOverlay = ({ appointmentId, onClose }) => {
                                     </p>
                                     <p>
                                         <strong className="font-medium">
-                                            Fecha y Hora Solicitada:
+                                            Solicitado:
                                         </strong>{" "}
                                         {formatDateTime(
                                             appointmentData.requestedDateTime,
                                         )}
                                     </p>
-                                    {/* Display existing suggestion if present (even when suggesting a new one) */}
+                                    {appointmentData.duration && (
+                                        <p>
+                                            <strong className="font-medium">
+                                                Duración:
+                                            </strong>{" "}
+                                            {appointmentData.duration} min
+                                        </p>
+                                    )}
                                     {appointmentData.suggestedDateTime && (
                                         <p className="mt-2 pt-2 border-t border-gray-200 text-blue-600">
                                             <strong className="font-medium text-blue-700">
+                                                {" "}
                                                 {appointmentData.status ===
                                                 "suggestion_made"
                                                     ? "Sugerencia Pendiente:"
-                                                    : "Horario Sugerido Previamente:"}
-                                            </strong>{" "}
+                                                    : "Sugerido Previamente:"}{" "}
+                                            </strong>
                                             {formatDateTime(
                                                 appointmentData.suggestedDateTime,
                                             )}
@@ -341,14 +358,14 @@ const AppointmentOverlay = ({ appointmentId, onClose }) => {
                                 </div>
                             )}
 
-                            {/* --- Suggestion Input Area (Conditional) --- */}
+                            {/* Suggestion Input Area (Conditional) */}
                             {isSuggesting && (
                                 <div className="border-2 border-secondary/30 rounded-lg p-4 bg-secondary/5 space-y-4 transition-all duration-300 mt-4 mb-4">
                                     <h4 className="text-body-l font-semibold text-textMain mb-2 flex items-center">
                                         <CalendarIcon
                                             size={18}
                                             className="mr-2 text-secondary"
-                                        />
+                                        />{" "}
                                         Selecciona Fecha y Hora Alternativa
                                     </h4>
                                     <AlternativeTimesCalendar
@@ -356,8 +373,9 @@ const AppointmentOverlay = ({ appointmentId, onClose }) => {
                                             handleSuggestionSelect
                                         }
                                         onCancel={handleCancelSuggestion}
+                                        stylistId={stylistId}
+                                        serviceDuration={serviceDuration}
                                     />
-
                                     {selectedSuggestionDateTime && (
                                         <p className="text-sm text-textMain bg-primary/10 p-2 rounded border border-primary/20">
                                             <strong className="font-medium">
@@ -368,7 +386,6 @@ const AppointmentOverlay = ({ appointmentId, onClose }) => {
                                             }
                                         </p>
                                     )}
-
                                     <div className="mt-4">
                                         <label
                                             htmlFor="suggestionComment"
@@ -377,7 +394,7 @@ const AppointmentOverlay = ({ appointmentId, onClose }) => {
                                             <MessageSquare
                                                 size={18}
                                                 className="mr-2 text-secondary"
-                                            />
+                                            />{" "}
                                             Comentario para el Cliente*
                                         </label>
                                         <textarea
@@ -397,18 +414,15 @@ const AppointmentOverlay = ({ appointmentId, onClose }) => {
                                             aria-required="true"
                                         ></textarea>
                                     </div>
-
-                                    {/* Suggestion Error Display */}
                                     {suggestionError && (
                                         <div
                                             className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm"
                                             role="alert"
                                         >
-                                            {suggestionError}
+                                            {" "}
+                                            {suggestionError}{" "}
                                         </div>
                                     )}
-
-                                    {/* Suggestion Action Buttons */}
                                     <div className="flex flex-col sm:flex-row gap-3 justify-end pt-2">
                                         <Button
                                             type="light"
@@ -416,7 +430,8 @@ const AppointmentOverlay = ({ appointmentId, onClose }) => {
                                             disabled={isSendingSuggestion}
                                             className="order-2 sm:order-1"
                                         >
-                                            Cancelar Sugerencia
+                                            {" "}
+                                            Cancelar Sugerencia{" "}
                                         </Button>
                                         <Button
                                             type="dark"
@@ -457,11 +472,10 @@ const AppointmentOverlay = ({ appointmentId, onClose }) => {
                             className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-center mb-3 text-sm"
                             role="alert"
                         >
-                            {updateError}
+                            {" "}
+                            {updateError}{" "}
                         </div>
                     )}
-
-                    {/* Action Buttons (Accept/Reject/Suggest) */}
                     {appointmentData &&
                         !isLoadingData &&
                         !fetchError &&
@@ -495,7 +509,8 @@ const AppointmentOverlay = ({ appointmentId, onClose }) => {
                                         disabled={isUpdatingStatus}
                                         className="flex-1 sm:flex-none flex justify-center items-center min-w-[110px]"
                                     >
-                                        Sugerir Otro
+                                        {" "}
+                                        Sugerir Otro{" "}
                                     </Button>
                                 )}
                                 {appointmentData.status !== "accepted" &&
@@ -517,11 +532,10 @@ const AppointmentOverlay = ({ appointmentId, onClose }) => {
                                     )}
                             </div>
                         )}
-
-                    {/* Message when no actions are possible */}
                     {(!appointmentData || fetchError) && !isLoadingData && (
                         <p className="text-center text-gray-500 text-sm">
-                            No se pueden realizar acciones.
+                            {" "}
+                            No se pueden realizar acciones.{" "}
                         </p>
                     )}
                 </div>

@@ -1,38 +1,68 @@
-// src/components/Calendar/AlternativeTimesCalendar.jsx
-import React, { useState } from "react"
-import { Calendar, Clock, ChevronLeft, ChevronRight } from "lucide-react"
+import React, { useEffect, useState } from "react"
+import { AlertTriangle, Clock, Loader2 } from "lucide-react"
+import { getAvailableSlotsForDay } from "../../features/availability/services/availabilityService"
+import { format } from "date-fns"
+import Button from "../common/Button.jsx"
 
-const AlternativeTimesCalendar = ({ onSelectAlternative, onCancel }) => {
+const AlternativeTimesCalendar = ({
+    onSelectAlternative,
+    onCancel,
+    stylistId,
+    serviceDuration,
+}) => {
     const [currentMonth, setCurrentMonth] = useState(new Date())
     const [selectedDate, setSelectedDate] = useState(null)
     const [selectedTime, setSelectedTime] = useState(null)
-    const [step, setStep] = useState(1) // 1: seleccionar fecha, 2: seleccionar hora
+    const [step, setStep] = useState(1)
 
-    // Horarios disponibles
-    const availableTimes = [
-        "09:00",
-        "10:00",
-        "11:00",
-        "12:00",
-        "13:00",
-        "14:00",
-        "15:00",
-        "16:00",
-        "17:00",
-        "18:00",
-    ]
+    const [availableSlots, setAvailableSlots] = useState([])
+    const [isLoadingSlots, setIsLoadingSlots] = useState(false)
+    const [slotsError, setSlotsError] = useState(null)
 
-    // Función para generar los días del mes actual
-    const getDaysInMonth = (year, month) => {
-        return new Date(year, month + 1, 0).getDate()
-    }
+    useEffect(() => {
+        if (
+            step === 2 &&
+            selectedDate &&
+            stylistId &&
+            typeof serviceDuration === "number" &&
+            serviceDuration > 0
+        ) {
+            const fetchSlots = async () => {
+                setIsLoadingSlots(true)
+                setSlotsError(null)
+                setAvailableSlots([])
+                if (isNaN(selectedDate.getTime())) {
+                    throw new Error("Invalid date selected")
+                }
+                try {
+                    const fetchedSlots = await getAvailableSlotsForDay(
+                        stylistId,
+                        selectedDate,
+                        serviceDuration,
+                    )
+                    setAvailableSlots(fetchedSlots)
+                } catch (error) {
+                    console.error("Error fetching slots for suggestion:", error)
+                    setSlotsError("Error al cargar horarios.")
+                    setAvailableSlots([])
+                } finally {
+                    setIsLoadingSlots(false)
+                }
+            }
+            fetchSlots().then((r) => r)
+        } else {
+            setAvailableSlots([])
+            setIsLoadingSlots(false)
+            setSlotsError(null)
+        }
+    }, [step, selectedDate, stylistId, serviceDuration])
 
-    // Función para obtener el día de la semana del primer día del mes (0-6, donde 0 es domingo)
-    const getFirstDayOfMonth = (year, month) => {
-        return new Date(year, month, 1).getDay()
-    }
+    const getDaysInMonth = (year, month) =>
+        new Date(year, month + 1, 0).getDate()
 
-    // Configuración de nombres de meses y días en español
+    const getFirstDayOfMonth = (year, month) =>
+        new Date(year, month, 1).getDay()
+
     const months = [
         "Enero",
         "Febrero",
@@ -50,7 +80,6 @@ const AlternativeTimesCalendar = ({ onSelectAlternative, onCancel }) => {
 
     const days = ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sá"]
 
-    // Navegación entre meses
     const prevMonth = () => {
         setCurrentMonth((prev) => {
             const prevMonth = new Date(prev)
@@ -67,12 +96,11 @@ const AlternativeTimesCalendar = ({ onSelectAlternative, onCancel }) => {
         })
     }
 
-    // Formatear fecha para español
-    const formatDateToSpanish = (date) => {
-        return `${date.getDate()} de ${months[date.getMonth()]} de ${date.getFullYear()}`
-    }
+    const formatDateToSpanish = (date) =>
+        date
+            ? `${date.getDate()} de ${months[date.getMonth()]} de ${date.getFullYear()}`
+            : ""
 
-    // Manejar selección de fecha
     const handleDateSelect = (day) => {
         if (day) {
             const date = new Date(
@@ -80,35 +108,43 @@ const AlternativeTimesCalendar = ({ onSelectAlternative, onCancel }) => {
                 currentMonth.getMonth(),
                 day,
             )
-            setSelectedDate(date)
-            setStep(2)
+            if (!isNaN(date.getTime())) {
+                setSelectedDate(date)
+                setSelectedTime(null)
+                setStep(2)
+            }
         }
     }
 
     const handleTimeSelect = (time) => {
         setSelectedTime(time)
+        setSlotsError(null)
     }
 
     const handleConfirm = () => {
-        if (selectedDate && selectedTime) {
-            const date = new Date(selectedDate)
+        if (selectedDate && selectedTime && !isNaN(selectedDate.getTime())) {
+            const dateString = format(selectedDate, "yyyy-MM-dd")
             onSelectAlternative({
-                date: date.toISOString().split("T")[0],
+                date: dateString,
                 time: selectedTime,
-                formatted: `${formatDateToSpanish(date)} a las ${selectedTime}`,
+                formatted: `${formatDateToSpanish(selectedDate)} a las ${selectedTime}`,
             })
+        } else {
+            console.warn("Confirm clicked without valid date/time selected.")
+            // TODO: Optionally show user feedback here
         }
     }
 
     const handleBack = () => {
         if (step === 2) {
             setStep(1)
+            setSelectedTime(null)
+            setSlotsError(null)
         } else {
             onCancel()
         }
     }
 
-    // Renderizar el calendario
     const renderCalendar = () => {
         const year = currentMonth.getFullYear()
         const month = currentMonth.getMonth()
@@ -118,12 +154,10 @@ const AlternativeTimesCalendar = ({ onSelectAlternative, onCancel }) => {
         const today = new Date()
         const calendarDays = []
 
-        // Añadir celdas vacías para los días antes del primer día del mes
         for (let i = 0; i < firstDay; i++) {
             calendarDays.push(<div key={`empty-${i}`} className="h-8 w-8" />)
         }
 
-        // Añadir los días del mes
         for (let day = 1; day <= daysInMonth; day++) {
             const date = new Date(year, month, day)
             const isToday =
@@ -158,8 +192,7 @@ const AlternativeTimesCalendar = ({ onSelectAlternative, onCancel }) => {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full max-w-md">
-            {/* Encabezado */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full">
             <div className="bg-secondary text-white p-2 flex items-center justify-between">
                 <div className="flex items-center">
                     <Calendar className="w-4 h-4 mr-2" />
@@ -177,10 +210,9 @@ const AlternativeTimesCalendar = ({ onSelectAlternative, onCancel }) => {
                 )}
             </div>
 
-            {/* Selector de fecha */}
             {step === 1 && (
                 <div className="p-2">
-                    {/* Navegación del mes */}
+                    {/* Month Navigation */}
                     <div className="flex justify-between items-center mb-2">
                         <button
                             onClick={prevMonth}
@@ -200,7 +232,7 @@ const AlternativeTimesCalendar = ({ onSelectAlternative, onCancel }) => {
                         </button>
                     </div>
 
-                    {/* Días de la semana */}
+                    {/* Days of the week */}
                     <div className="grid grid-cols-7 gap-1 mb-1">
                         {days.map((day) => (
                             <div
@@ -212,67 +244,93 @@ const AlternativeTimesCalendar = ({ onSelectAlternative, onCancel }) => {
                         ))}
                     </div>
 
-                    {/* Días del mes */}
+                    {/* Calendar Days */}
                     <div className="grid grid-cols-7 gap-1">
                         {renderCalendar()}
                     </div>
                 </div>
             )}
-
-            {/* Selector de hora */}
+            {/* Time Selector */}
             {step === 2 && (
                 <div className="p-3">
                     <div className="mb-3">
                         <p className="text-xs text-textMain/70">
-                            Fecha seleccionada:
+                            {" "}
+                            Fecha seleccionada:{" "}
                         </p>
                         <p className="text-sm font-medium">
-                            {formatDateToSpanish(selectedDate)}
+                            {" "}
+                            {formatDateToSpanish(selectedDate)}{" "}
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2">
-                        {availableTimes.map((time) => (
-                            <button
-                                key={time}
-                                onClick={() => handleTimeSelect(time)}
-                                className={`py-2 px-1 rounded text-sm flex items-center justify-center transition-colors
-                  ${
-                      selectedTime === time
-                          ? "bg-secondary text-white"
-                          : "hover:bg-secondary/10 border border-gray-200"
-                  }`}
-                            >
-                                <Clock className="w-3 h-3 mr-1" />
-                                <span>{time}</span>
-                            </button>
+                    {/* Slot Loading/Error/Display */}
+                    {isLoadingSlots && (
+                        <div className="flex items-center text-gray-500 py-4 justify-center">
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />{" "}
+                            Cargando horarios...
+                        </div>
+                    )}
+                    {slotsError && !isLoadingSlots && (
+                        <div className="text-red-600 text-sm flex items-center justify-center py-4 bg-red-50 border border-red-200 rounded p-2">
+                            <AlertTriangle className="w-4 h-4 mr-1 flex-shrink-0" />{" "}
+                            {slotsError}
+                        </div>
+                    )}
+                    {!isLoadingSlots &&
+                        !slotsError &&
+                        (availableSlots.length === 0 ? (
+                            <p className="text-sm text-gray-500 italic text-center py-4">
+                                No hay horarios disponibles para sugerir en esta
+                                fecha.
+                            </p>
+                        ) : (
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                {availableSlots.map((slot) => (
+                                    <button
+                                        key={slot.time}
+                                        onClick={() =>
+                                            slot.isAvailable &&
+                                            handleTimeSelect(slot.time)
+                                        }
+                                        disabled={!slot.isAvailable}
+                                        title={
+                                            !slot.isAvailable
+                                                ? slot.reason || "No disponible"
+                                                : `Sugerir ${slot.time}`
+                                        }
+                                        className={`py-2 px-1 rounded text-sm flex items-center justify-center transition-colors border focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary ${
+                                            selectedTime === slot.time
+                                                ? "bg-secondary text-white border-secondary ring-2 ring-offset-1 ring-secondary"
+                                                : slot.isAvailable
+                                                  ? "bg-white border-gray-300 hover:border-primary hover:bg-primary/5 text-textMain"
+                                                  : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed line-through"
+                                        }`}
+                                    >
+                                        <Clock className="w-3 h-3 mr-1 opacity-80" />
+                                        <span>{slot.time}</span>
+                                    </button>
+                                ))}
+                            </div>
                         ))}
-                    </div>
                 </div>
             )}
-
-            {/* Botones de acción */}
+            {/* Action Buttons */}
             <div className="border-t p-2 flex justify-between">
-                <button
-                    onClick={handleBack}
-                    className="px-3 py-1 text-xs text-textMain border border-gray-300 rounded hover:bg-gray-50"
-                >
+                <Button type="transparent" size="sm" onClick={handleBack}>
                     {step === 1 ? "Cancelar" : "Volver"}
-                </button>
-
+                </Button>
                 {step === 2 && (
-                    <button
+                    <Button
+                        type="dark"
+                        size="sm"
                         onClick={handleConfirm}
-                        disabled={!selectedTime}
-                        className={`px-3 py-1 text-xs text-white rounded
-              ${
-                  selectedTime
-                      ? "bg-secondary hover:bg-secondary/90"
-                      : "bg-gray-300 cursor-not-allowed"
-              }`}
+                        disabled={
+                            !selectedTime || isLoadingSlots || !!slotsError
+                        }
                     >
-                        Confirmar
-                    </button>
+                        Confirmar Hora
+                    </Button>
                 )}
             </div>
         </div>

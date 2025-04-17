@@ -1,4 +1,3 @@
-// src/screens/StylistScreens/DashboardScreen.jsx
 import React from "react"
 import { useNavigate } from "react-router-dom"
 import SchedulePreview from "../../components/stylist_dashboard/SchedulePreview"

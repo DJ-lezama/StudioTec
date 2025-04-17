@@ -13,20 +13,43 @@ import { db } from "../../../../firebaseConfig.js"
 /**
  * Creates a new appointment request document in Firestore.
  * @param {object} appointmentData - The data for the new appointment.
- * Must include all fields for the /appointments document
- * except createdAt, which will be added.
- * @returns {Promise<DocumentReference>} A promise that resolves with the DocumentReference of the newly created document.
+ * Must include 'clientId', 'stylistId', 'serviceId', 'duration', 'requestedDateTime', etc.
+ * @returns {Promise<DocumentReference>} A promise that resolves with the DocumentReference.
  * @throws {Error} Throws an error if the Firestore operation fails.
  */
 export const createAppointmentRequest = async (appointmentData) => {
+    if (
+        !appointmentData.clientId ||
+        !appointmentData.stylistId ||
+        !appointmentData.serviceId ||
+        typeof appointmentData.duration !== "number" ||
+        !appointmentData.requestedDateTime
+    ) {
+        console.error(
+            "Missing required fields in appointmentData:",
+            appointmentData,
+        )
+        throw new Error("Datos incompletos para crear la cita.")
+    }
+
     try {
         const dataToSave = {
             ...appointmentData,
+            status: appointmentData.status || "pending",
             createdAt: serverTimestamp(),
+            clientNotes: appointmentData.clientNotes || "",
+            inspirationImageUrl: appointmentData.inspirationImageUrl || "",
         }
+        delete dataToSave.email
+
         const appointmentsCollectionRef = collection(db, "appointments")
         const docRef = await addDoc(appointmentsCollectionRef, dataToSave)
-        console.log("Appointment request created with ID: ", docRef.id)
+        console.log(
+            "Appointment request created with ID: ",
+            docRef.id,
+            "Data:",
+            dataToSave,
+        )
         return docRef
     } catch (error) {
         console.error("Error creating appointment request: ", error)

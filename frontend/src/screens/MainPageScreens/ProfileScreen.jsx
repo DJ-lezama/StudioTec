@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Calendar, ChevronRight, Settings, User } from "lucide-react"
+import { Calendar, ChevronRight, Clock, Settings, User } from "lucide-react"
 import { toast } from "react-toastify"
 import useAuth from "../../features/auth/hooks/useAuth.js"
 import { db } from "../../../firebaseConfig.js"
@@ -19,6 +19,7 @@ import Sidebar from "../../components/profile/Sidebar"
 import ProfileTab from "../../components/profile/tabs/ProfileTab"
 import AppointmentsTab from "../../components/profile/tabs/AppointmentsTab"
 import PreferencesTab from "../../components/profile/tabs/PreferencesTab"
+import AvailabilityTab from "../../components/profile/tabs/AvailabilityTab"
 import RescheduleModal from "../../components/profile/RescheduleModal"
 import {
     acceptAppointmentSuggestion,
@@ -87,6 +88,13 @@ function ProfileScreen() {
         )
         return () => unsubscribe()
     }, [currentUser?.uid])
+
+    useEffect(() => {
+        setUser(currentUser)
+        if (currentUser && activeTab === "") {
+            setActiveTab("profile")
+        }
+    }, [activeTab, currentUser])
 
     if (!currentUser) return null
 
@@ -253,7 +261,8 @@ function ProfileScreen() {
                 active: activeTab === "profile",
             },
         ]
-        if (user.role === "client") {
+
+        if (user?.role === "client") {
             baseMenuItems.push({
                 icon: <Calendar size={20} />,
                 label: "Mis citas",
@@ -267,7 +276,14 @@ function ProfileScreen() {
                 active: activeTab === "preferences",
             })
         }
-        if (user.role === "stylist") {
+
+        if (user?.role === "stylist") {
+            baseMenuItems.push({
+                icon: <Clock size={20} />,
+                label: "Mi Horario",
+                action: () => setActiveTab("availability"),
+                active: activeTab === "availability",
+            })
             baseMenuItems.push({
                 icon: <ChevronRight size={20} />,
                 label: "Panel de estilista",
@@ -306,8 +322,9 @@ function ProfileScreen() {
                             />
                         )}
 
+                        {/* Client Tabs */}
                         {activeTab === "appointments" &&
-                            user.role === "client" && (
+                            user?.role === "client" && (
                                 <AppointmentsTab
                                     allAppointments={appointments}
                                     isLoading={isLoadingAppointments}
@@ -321,9 +338,14 @@ function ProfileScreen() {
                                     actionLoading={actionLoading}
                                 />
                             )}
-
                         {activeTab === "preferences" &&
-                            user.role === "client" && <PreferencesTab />}
+                            user?.role === "client" && <PreferencesTab />}
+
+                        {/* Stylist Tabs */}
+                        {activeTab === "availability" &&
+                            user?.role === "stylist" && (
+                                <AvailabilityTab stylistId={user.uid} />
+                            )}
                     </main>
                 </div>
             </div>
