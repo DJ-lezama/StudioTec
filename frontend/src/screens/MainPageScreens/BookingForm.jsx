@@ -103,18 +103,6 @@ function BookingForm() {
         if (e) e.preventDefault()
         setSubmitError(null)
 
-        if (!currentUser) {
-            setSubmitError("Debes iniciar sesión para poder agendar una cita.")
-            // TODO: We shouldn't allow people in the first place to book an appointment if they are not logged in
-            //       We should right away have a message saying "Debes iniciar sesión para poder agendar una cita."
-            return
-        }
-        if (currentUser.role === "stylist") {
-            setSubmitError(
-                "Los estilistas no pueden agendar citas como clientes.",
-            )
-            return
-        }
         // Basic check before final submission (can be enhanced)
         if (
             !formData.serviceId ||

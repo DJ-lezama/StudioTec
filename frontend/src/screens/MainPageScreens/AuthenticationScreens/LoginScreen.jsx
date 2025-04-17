@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useLocation } from "react-router-dom"
 import Button from "../../../components/common/Button"
 import useAuth from "../../../features/auth/hooks/useAuth.js"
 
@@ -7,8 +7,10 @@ function LoginScreen({ onSwitch }) {
     const [form, setForm] = useState({ email: "", password: "" })
     const [error, setError] = useState("")
     const [loadingAuth, setLoadingAuth] = useState(false)
-    const navigate = useNavigate()
+    const location = useLocation()
     const { login } = useAuth()
+
+    const fromPath = location.state?.from?.pathname || null
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -21,8 +23,7 @@ function LoginScreen({ onSwitch }) {
         setLoadingAuth(true)
         setError("")
         try {
-            const { redirectTo } = await login(form.email, form.password)
-            navigate(redirectTo)
+            await login(form.email, form.password, fromPath)
         } catch (err) {
             console.error("Firebase Login Error:", err)
             switch (err.code) {
