@@ -1,108 +1,70 @@
-// src/screens/StylistScreens/RequestsScreen.jsx
 import React, { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { AlertTriangle, Loader2 } from "lucide-react"
 import RequestReviewOverlay from "../../components/ScheduleVisualizer/AppointmentOverlay.jsx"
 import Button from "../../components/common/Button.jsx"
-import { useNavigate } from "react-router-dom"
 import RequestCardCarousel from "../../components/RequestsVisualizer/RequestCardCarousel.jsx"
-
-// Muestra de solicitudes para demostración
-const sampleRequests = [
-    {
-        id: "123456",
-        service: "Limpieza de orzuela + Corte",
-        stylist: "Estilista A",
-        time: "16:40",
-        date: "23 de Marzo de 2025",
-        client: "Alina Porras",
-        hairImage:
-            "https://images.unsplash.com/photo-1580618864527-0869fced739a?ixlib=rb-4.0.3",
-        referenceImage:
-            "https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1?ixlib=rb-4.0.3",
-    },
-    {
-        id: "234567",
-        service: "Limpieza de orzuela + Corte",
-        stylist: "Estilista A",
-        time: "14:30",
-        date: "24 de Marzo de 2025",
-        client: "Diana López",
-        hairImage:
-            "https://images.unsplash.com/photo-1600180758890-6c861b6b2c7b",
-        referenceImage:
-            "https://images.unsplash.com/photo-1605379399642-870262d3d051",
-    },
-    {
-        id: "345678",
-        service: "Limpieza de orzuela",
-        stylist: "Estilista B",
-        time: "10:15",
-        date: "25 de Marzo de 2025",
-        client: "Alexa Perez",
-        hairImage: "https://images.unsplash.com/photo-1559599078-0bcb85b4e3c3",
-        referenceImage:
-            "https://images.unsplash.com/photo-1594824476967-48c8b9642738",
-    },
-    {
-        id: "456789",
-        service: "Coloración + Tratamiento",
-        stylist: "Estilista C",
-        time: "11:30",
-        date: "26 de Marzo de 2025",
-        client: "Carmen Ruiz",
-        hairImage:
-            "https://images.unsplash.com/photo-1605497788044-5a32c7078486",
-        referenceImage:
-            "https://images.unsplash.com/photo-1562322140-8baeececf3df",
-    },
-    {
-        id: "567890",
-        service: "Manicure Gelish",
-        stylist: "Estilista A",
-        time: "15:00",
-        date: "27 de Marzo de 2025",
-        client: "Laura Torres",
-        hairImage: null,
-        referenceImage:
-            "https://images.unsplash.com/photo-1604902396830-aca29e19b067",
-    },
-    {
-        id: "678901",
-        service: "Corte + Balayage",
-        stylist: "Estilista B",
-        time: "13:45",
-        date: "28 de Marzo de 2025",
-        client: "Mónica Guzmán",
-        hairImage:
-            "https://images.unsplash.com/photo-1605497788044-5a32c7078486",
-        referenceImage:
-            "https://images.unsplash.com/photo-1562322140-8baeececf3df",
-    },
-]
+import { usePendingRequests } from "../../features/booking/hooks/usePendingRequests.js"
 
 const RequestsScreen = () => {
-    const [requests, setRequests] = useState(sampleRequests)
+    const { pendingRequests, isLoading, error } = usePendingRequests()
+
     const [selectedRequest, setSelectedRequest] = useState(null)
+
     const navigate = useNavigate()
 
-    // Función para manejar respuestas a las solicitudes
-    const handleRequestResponse = (requestId, response) => {
-        console.log(`Solicitud ${requestId} ${response.decision}`)
+    const handleReviewClick = (request) => {
+        setSelectedRequest(request)
+    }
 
-        // En un caso real, aquí se enviaría la respuesta al backend
+    const renderContent = () => {
+        if (isLoading) {
+            return (
+                <div className="flex justify-center items-center p-10 text-center text-gray-600">
+                    <Loader2 className="w-8 h-8 text-secondary animate-spin mr-3" />
+                    <span>Cargando solicitudes...</span>
+                </div>
+            )
+        }
 
-        // Actualizamos el estado local (simulación)
-        setRequests((prevRequests) =>
-            prevRequests.filter((req) => req.id !== requestId),
+        if (error) {
+            return (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg text-center flex items-center justify-center">
+                    <AlertTriangle className="w-5 h-5 mr-2" />
+                    <span>
+                        Error al cargar las solicitudes. Por favor, inténtalo de
+                        nuevo más tarde.
+                    </span>
+                </div>
+            )
+        }
+
+        if (pendingRequests.length === 0) {
+            return (
+                <div className="bg-white p-8 rounded-xl shadow text-center">
+                    <h2 className="text-h4 font-heading text-textMain mb-2">
+                        No hay solicitudes pendientes
+                    </h2>
+                    <p className="text-textMain/70">
+                        ¡Buen trabajo! Has revisado todas las solicitudes.
+                    </p>
+                </div>
+            )
+        }
+
+        return (
+            <RequestCardCarousel
+                requests={pendingRequests}
+                onCardClick={handleReviewClick}
+            />
         )
-
-        setSelectedRequest(null)
     }
 
     return (
         <div className="p-8 space-y-6 min-h-screen bg-primaryLight">
-            <div className="flex items-center justify-between">
-                <h1 className="text-h2 font-normal text-textMain mb-6">
-                    Solicitudes
+            <div className="flex items-center justify-between mb-6">
+                <h1 className="text-h2 font-normal text-textMain">
+                    Solicitudes Pendientes
                 </h1>
                 <Button
                     type="dark"
@@ -112,30 +74,12 @@ const RequestsScreen = () => {
                 </Button>
             </div>
 
-            {requests.length > 0 ? (
-                <RequestCardCarousel
-                    requests={requests}
-                    onCardClick={setSelectedRequest}
-                />
-            ) : (
-                <div className="bg-white p-8 rounded-xl shadow text-center">
-                    <h2 className="text-h4 font-heading text-textMain mb-2">
-                        No hay solicitudes pendientes
-                    </h2>
-                    <p className="text-textMain/70">
-                        Todas las solicitudes han sido procesadas. Volveremos a
-                        notificarte cuando haya nuevas solicitudes.
-                    </p>
-                </div>
-            )}
+            {renderContent()}
 
             {selectedRequest && (
                 <RequestReviewOverlay
-                    request={selectedRequest}
+                    appointmentId={selectedRequest.id}
                     onClose={() => setSelectedRequest(null)}
-                    onRespond={(response) =>
-                        handleRequestResponse(selectedRequest.id, response)
-                    }
                 />
             )}
         </div>

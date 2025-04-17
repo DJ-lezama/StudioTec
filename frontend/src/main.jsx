@@ -2,7 +2,11 @@ import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
 import "./index.css"
-import { ProtectedRoute, StylistRoute } from "./components/ProtectedRoute"
+import {
+    ClientRoute,
+    ProtectedRoute,
+    StylistRoute,
+} from "./components/routes/ProtectedRoute.jsx"
 
 // Layout
 import ContentWrapper from "./components/layout/ContentWrapper.jsx"
@@ -58,9 +62,11 @@ createRoot(document.getElementById("root")).render(
                     <Route
                         path="/agendar"
                         element={
-                            <ContentWrapper>
-                                <BookingPage />
-                            </ContentWrapper>
+                            <ClientRoute>
+                                <ContentWrapper>
+                                    <BookingPage />
+                                </ContentWrapper>
+                            </ClientRoute>
                         }
                     />
                     <Route
@@ -147,7 +153,6 @@ createRoot(document.getElementById("root")).render(
                         path="/perfil"
                         element={
                             <ProtectedRoute>
-                                {/* ProfileScreen does not ContentWrapper if it handles its own padding */}
                                 <ProfileScreen />
                             </ProtectedRoute>
                         }
