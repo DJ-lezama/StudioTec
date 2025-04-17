@@ -7,64 +7,89 @@ import {
     doc,
     getDoc,
     serverTimestamp,
-    setDoc,
     Timestamp,
+    writeBatch,
 } from "firebase/firestore"
 import { auth, db } from "../../../../firebaseConfig.js"
 
-export const registerUser = async (name, email, password, phone) => {
+const defaultWorkingHours = {
+    monday: ["09:00-13:00", "14:00-18:00"],
+    tuesday: ["09:00-13:00", "14:00-18:00"],
+    wednesday: ["09:00-13:00", "14:00-18:00"],
+    thursday: ["09:00-13:00", "14:00-17:00"],
+    friday: ["10:00-14:00"],
+    saturday: null,
+    sunday: null,
+}
+
+export const registerUser = async (name, email, password, phone, isStylist) => {
     const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password,
     )
     const user = userCredential.user
+    const userId = user.uid
 
-    const userDocRef = doc(db, "users", user.uid)
+    const userDocRef = doc(db, "users", userId)
     const userData = {
         name,
         email,
         phone: phone || "",
-        role: "client",
+        role: isStylist ? "stylist" : "client",
         createdAt: serverTimestamp(),
     }
 
-    await setDoc(userDocRef, userData)
+    const batch = writeBatch(db)
 
-    // --- TODO: Default Stylist Profile Creation (Deferred) ---
-    // If we were creating a stylist directly, the logic would go here:
-    // if (userData.role === 'stylist') {
-    //     const stylistProfileRef = doc(db, "stylist_profiles", user.uid);
-    //     await setDoc(stylistProfileRef, {
-    //         userId: user.uid,
-    //         timeZone: "America/Mexico_City", // Default
-    //         bufferTime: 0, // Default
-    //         workingHours: { // Default schedule
-    //             monday: ["09:00-17:00"], tuesday: ["09:00-17:00"], wednesday: ["09:00-17:00"],
-    //             thursday: ["09:00-17:00"], friday: ["09:00-17:00"], saturday: null, sunday: null
-    //         },
-    //         availabilityOverrides: {},
-    //         createdAt: serverTimestamp() // Also track when profile created
-    //     });
-    // }
-    // --- End Deferred Logic ---
+    batch.set(userDocRef, userData)
 
-    const newUserDoc = await getDoc(userDocRef)
-    if (!newUserDoc.exists()) {
-        console.warn(
-            "User document not immediately available after creation, returning partial data.",
-        )
+    if (isStylist) {
+        const stylistProfileRef = doc(db, "stylist_profiles", userId)
+        const stylistProfileData = {
+            userId: userId,
+            timeZone: "America/Mexico_City", // Default timezone (TODO: adjust if needed)
+            workingHours: defaultWorkingHours,
+            availabilityOverrides: {},
+            bufferTime: 0,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        }
+        batch.set(stylistProfileRef, stylistProfileData)
+    }
+
+    await batch.commit()
+
+    try {
+        const newUserDoc = await getDoc(userDocRef)
+        if (!newUserDoc.exists()) {
+            console.warn(
+                "User document not immediately available after creation, returning partial data.",
+            )
+            return {
+                uid: userId,
+                email: user.email,
+                ...userData,
+                createdAt: Timestamp.now(),
+            }
+        }
         return {
-            uid: user.uid,
+            uid: userId,
+            email: user.email,
+            ...newUserDoc.data(),
+        }
+    } catch (getDocError) {
+        console.error(
+            "Error fetching user document immediately after creation:",
+            getDocError,
+        )
+        // Return partial data as fallback
+        return {
+            uid: userId,
             email: user.email,
             ...userData,
             createdAt: Timestamp.now(),
         }
-    }
-
-    return {
-        uid: user.uid,
-        ...newUserDoc.data(),
     }
 }
 
@@ -80,7 +105,7 @@ export const loginUser = async (email, password) => {
     const userDocSnap = await getDoc(userDocRef)
     if (!userDocSnap.exists()) {
         await signOut(auth)
-        throw new Error("User data not found")
+        throw new Error("User data not found. Please contact support.")
     }
     const userData = userDocSnap.data()
     return { user: { uid: user.uid, email: user.email, ...userData } }
@@ -93,18 +118,10 @@ export const getUserData = async (user) => {
     const userDocRef = doc(db, "users", user.uid)
     const userDocSnap = await getDoc(userDocRef)
     if (!userDocSnap.exists()) {
+        console.warn(
+            `User document not found for authenticated user UID: ${user.uid}`,
+        )
         return null
     }
     return { uid: user.uid, email: user.email, ...userDocSnap.data() }
 }
-
-// TODO: Potential function needed later for assigning stylist role + creating profile
-// export const assignStylistRole = async (userId) => {
-//     const userDocRef = doc(db, "users", userId);
-//     const stylistProfileRef = doc(db, "stylist_profiles", userId);
-//     // Use a transaction or batch write for atomicity
-//     const batch = writeBatch(db);
-//     batch.update(userDocRef, { role: "stylist" });
-//     batch.set(stylistProfileRef, { /* ... default stylist profile data ... */ });
-//     await batch.commit();
-// }

@@ -55,16 +55,17 @@ function LoginScreen({ onSwitch }) {
         }
     }
 
+    // TODO: Remove these test credentials later
     const fillClientCredentials = () => {
         setForm({
-            email: "test@example.com",
-            password: "password",
+            email: "sofia.martinez@email.com",
+            password: "password123",
         })
     }
     const fillStylistCredentials = () => {
         setForm({
-            email: "estilista@studiotec.mx",
-            password: "estilista123",
+            email: "estilista1@studiotec.mx",
+            password: "password123",
         })
     }
 

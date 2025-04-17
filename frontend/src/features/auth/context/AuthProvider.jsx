@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
 import { onAuthStateChanged } from "firebase/auth"
@@ -17,29 +17,43 @@ const AuthProvider = ({ children }) => {
     const navigate = useNavigate()
 
     useEffect(() => {
-        return onAuthStateChanged(auth, async (user) => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            setLoading(true)
             try {
                 const userData = await getUserData(user)
                 setCurrentUser(userData)
             } catch (error) {
-                console.error("Auth state change error:", error)
+                console.error(
+                    "Auth state change error - fetching user data:",
+                    error,
+                )
                 setCurrentUser(null)
+                toast.error("Hubo un problema al cargar tu sesión.")
             } finally {
                 setLoading(false)
             }
         })
+        return () => unsubscribe()
     }, [])
 
-    const register = async (name, email, password) => {
+    const register = async (name, email, password, phone, isStylist) => {
         setLoading(true)
         try {
-            const user = await registerUser(name, email, password)
+            const user = await registerUser(
+                name,
+                email,
+                password,
+                phone,
+                isStylist,
+            )
             setCurrentUser(user)
             toast.success(`¡Registro exitoso! Bienvenido/a, ${user.name}!`)
-            navigate("/")
+            const pathToGo =
+                user.role === "stylist" ? "/stylist/dashboard" : "/"
+            navigate(pathToGo, { replace: true })
             return { user }
         } catch (error) {
-            console.error("Registration error:", error)
+            console.error("Registration error in AuthProvider:", error)
             toast.error(
                 error.message ||
                     "Error durante el registro. Inténtalo de nuevo.",
@@ -61,8 +75,9 @@ const AuthProvider = ({ children }) => {
                 const pathToGo = intendedPath || defaultPath
                 navigate(pathToGo, { replace: true })
                 toast.success(`¡Bienvenido/a de nuevo, ${user.name}!`)
+                return { user }
             } catch (error) {
-                console.error("Login error:", error)
+                console.error("Login error in AuthProvider:", error)
                 toast.error(
                     error.message ||
                         "Error al iniciar sesión. Verifica tus credenciales.",
@@ -75,7 +90,7 @@ const AuthProvider = ({ children }) => {
         [navigate],
     )
 
-    const logout = async () => {
+    const logout = useCallback(async () => {
         setLoading(true)
         try {
             await logoutUser()
@@ -84,11 +99,11 @@ const AuthProvider = ({ children }) => {
             navigate("/", { replace: true })
         } catch (error) {
             console.error("Logout error:", error)
-            toast.error(error.message || "Error al cerrar sesión.") // Error toast for logout
+            toast.error(error.message || "Error al cerrar sesión.")
         } finally {
             setLoading(false)
         }
-    }
+    }, [navigate])
 
     const value = {
         currentUser,
@@ -96,6 +111,8 @@ const AuthProvider = ({ children }) => {
         register,
         login,
         logout,
+        // TODO: Potentially add a function to update user data if profile edits are done elsewhere
+        // updateUserContext: (updatedData) => setCurrentUser(prev => ({...prev, ...updatedData }))
     }
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
