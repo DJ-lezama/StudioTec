@@ -125,7 +125,6 @@ export const acceptAppointmentSuggestion = async (appointmentId) => {
     if (!appointmentId) {
         throw new Error("Appointment ID is required.")
     }
-
     const appointmentDocRef = doc(db, "appointments", appointmentId)
 
     const docSnap = await getDoc(appointmentDocRef)
@@ -147,7 +146,6 @@ export const acceptAppointmentSuggestion = async (appointmentId) => {
             suggestionComment: deleteField(),
             updatedAt: serverTimestamp(),
         })
-
         console.log(`Suggestion accepted for appointment ${appointmentId}`)
     } catch (error) {
         console.error(`Error accepting suggestion for ${appointmentId}:`, error)
@@ -179,5 +177,44 @@ export const declineAppointmentSuggestion = async (appointmentId) => {
     } catch (error) {
         console.error(`Error declining suggestion for ${appointmentId}:`, error)
         throw new Error(`Failed to decline suggestion: ${error.message}`)
+    }
+}
+
+/**
+ * Updates an appointment with a new requested date/time from the client.
+ * Resets the status to 'pending' and clears any existing suggestions.
+ * @param {string} appointmentId - The ID of the appointment to reschedule.
+ * @param {Date} newDateTime - The new requested date and time as a JavaScript Date object.
+ * @returns {Promise<void>}
+ * @throws {Error} If required parameters are missing or update fails.
+ */
+export const requestAppointmentReschedule = async (
+    appointmentId,
+    newDateTime,
+) => {
+    if (!appointmentId || !newDateTime) {
+        throw new Error("Appointment ID and new date/time are required.")
+    }
+    if (!(newDateTime instanceof Date) || isNaN(newDateTime.getTime())) {
+        throw new Error("Invalid Date object provided for newDateTime.")
+    }
+
+    const appointmentDocRef = doc(db, "appointments", appointmentId)
+
+    try {
+        await updateDoc(appointmentDocRef, {
+            requestedDateTime: Timestamp.fromDate(newDateTime),
+            status: "pending",
+            suggestedDateTime: deleteField(),
+            suggestionComment: deleteField(),
+            updatedAt: serverTimestamp(),
+        })
+        console.log(`Reschedule requested for appointment ${appointmentId}`)
+    } catch (error) {
+        console.error(
+            `Error requesting reschedule for ${appointmentId}:`,
+            error,
+        )
+        throw new Error(`Failed to request reschedule: ${error.message}`)
     }
 }

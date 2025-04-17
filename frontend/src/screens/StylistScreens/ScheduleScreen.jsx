@@ -1,296 +1,66 @@
-// src/screens/StylistScreens/ScheduleScreen.jsx
 import React from "react"
+import { useNavigate } from "react-router-dom"
+import useAuth from "../../features/auth/hooks/useAuth"
+import { useAcceptedAppointments } from "../../features/booking/hooks/useAcceptedAppointments"
 import ScheduleVisualizer from "../../components/schedule/ScheduleVisualizer"
 import Button from "../../components/common/Button"
-import { useNavigate } from "react-router-dom"
+import { AlertTriangle, Loader2 } from "lucide-react"
 
 const ScheduleScreen = () => {
-    // Mock data — in the future, this will come from the DB or API
-    const mock_appointments = [
-        {
-            service: "Corte",
-            stylist: "Estilista 3",
-            client: "Clienta C",
-            date: "2025-04-04",
-            referenceImage:
-                "https://images.unsplash.com/photo-1605379399642-870262d3d051",
-            hairImage:
-                "https://images.unsplash.com/photo-1559599078-0bcb85b4e3c3",
-            comments: "Tu tipo de cabello permite lograr ese look fácilmente.",
-        },
-        {
-            service: "Uñas gelish",
-            stylist: "Estilista 1",
-            client: "Clienta H",
-            date: "2025-04-05",
-            referenceImage:
-                "https://images.unsplash.com/photo-1605379399642-870262d3d051",
-            hairImage:
-                "https://images.unsplash.com/photo-1559599078-0bcb85b4e3c3",
-            comments: "Te conviene un corte gradual para mantener el volumen.",
-        },
-        {
-            service: "Mascarilla de nutrición",
-            stylist: "Estilista 1",
-            client: "Clienta I",
-            date: "2025-04-06",
-            referenceImage:
-                "https://images.unsplash.com/photo-1605379399642-870262d3d051",
-            hairImage:
-                "https://images.unsplash.com/photo-1600180758890-6c861b6b2c7b",
-            comments: "Será necesario hacer una limpieza profunda primero.",
-        },
-        {
-            service: "Corte en capas",
-            stylist: "Estilista 3",
-            client: "Clienta I",
-            date: "2025-05-14",
-            referenceImage:
-                "https://images.unsplash.com/photo-1594824476967-48c8b9642738",
-            hairImage:
-                "https://images.unsplash.com/photo-1600180758890-6c861b6b2c7b",
-            comments: "Podemos probar un tono un poco más claro si lo deseas.",
-        },
-        {
-            service: "Color fantasía",
-            stylist: "Estilista 2",
-            client: "Clienta J",
-            date: "2025-05-22",
-            referenceImage:
-                "https://images.unsplash.com/photo-1594824476967-48c8b9642738",
-            hairImage:
-                "https://images.unsplash.com/photo-1559599078-0bcb85b4e3c3",
-            comments: "Este estilo va perfecto con tu forma de rostro.",
-        },
-        {
-            service: "Mascarilla hidratante",
-            stylist: "Estilista 2",
-            client: "Clienta B",
-            date: "2025-04-05",
-            referenceImage:
-                "https://images.unsplash.com/photo-1594824476967-48c8b9642738",
-            hairImage:
-                "https://images.unsplash.com/photo-1559599078-0bcb85b4e3c3",
-            comments:
-                "Te recomiendo un tratamiento antes de la coloración para evitar daño.",
-        },
-        {
-            service: "Coloración completa",
-            stylist: "Estilista 3",
-            client: "Clienta D",
-            date: "2025-04-08",
-            referenceImage:
-                "https://images.unsplash.com/photo-1605379399642-870262d3d051",
-            hairImage:
-                "https://images.unsplash.com/photo-1600180758890-6c861b6b2c7b",
-            comments: "Será necesario hacer una limpieza profunda primero.",
-        },
-        {
-            service: "Peinado de evento",
-            stylist: "Estilista 2",
-            client: "Clienta E",
-            date: "2025-04-10",
-            referenceImage:
-                "https://images.unsplash.com/photo-1594824476967-48c8b9642738",
-            hairImage:
-                "https://images.unsplash.com/photo-1600180758890-6c861b6b2c7b",
-            comments: "Tu tipo de cabello permite lograr ese look fácilmente.",
-        },
-        {
-            service: "Corte + Tratamiento",
-            stylist: "Estilista 1",
-            client: "Clienta F",
-            date: "2025-04-18",
-            referenceImage:
-                "https://images.unsplash.com/photo-1605379399642-870262d3d051",
-            hairImage:
-                "https://images.unsplash.com/photo-1559599078-0bcb85b4e3c3",
-            comments: "Te conviene un corte gradual para mantener el volumen.",
-        },
-        {
-            service: "Uñas gelish",
-            stylist: "Estilista 2",
-            client: "Clienta G",
-            date: "2025-04-22",
-            referenceImage:
-                "https://images.unsplash.com/photo-1594824476967-48c8b9642738",
-            hairImage:
-                "https://images.unsplash.com/photo-1600180758890-6c861b6b2c7b",
-            comments: "Este estilo va perfecto con tu forma de rostro.",
-        },
-        {
-            service: "Peinado + Limpieza de orzuela",
-            stylist: "Estilista 1",
-            client: "Clienta H",
-            date: "2025-05-01",
-            referenceImage:
-                "https://images.unsplash.com/photo-1605379399642-870262d3d051",
-            hairImage:
-                "https://images.unsplash.com/photo-1600180758890-6c861b6b2c7b",
-            comments: "Será necesario hacer una limpieza profunda primero.",
-        },
-        {
-            service: "Mascarilla de nutrición",
-            stylist: "Estilista 1",
-            client: "Clienta K",
-            date: "2025-06-03",
-            referenceImage:
-                "https://images.unsplash.com/photo-1594824476967-48c8b9642738",
-            hairImage:
-                "https://images.unsplash.com/photo-1559599078-0bcb85b4e3c3",
-            comments: "Podemos probar un tono un poco más claro si lo deseas.",
-        },
-        {
-            service: "Corte",
-            stylist: "Estilista 3",
-            client: "Clienta C",
-            date: "2025-04-04",
-            referenceImage:
-                "https://images.unsplash.com/photo-1605379399642-870262d3d051",
-            hairImage:
-                "https://images.unsplash.com/photo-1559599078-0bcb85b4e3c3",
-            comments: "Tu tipo de cabello permite lograr ese look fácilmente.",
-        },
-        {
-            service: "Uñas gelish",
-            stylist: "Estilista 1",
-            client: "Clienta H",
-            date: "2025-04-05",
-            referenceImage:
-                "https://images.unsplash.com/photo-1605379399642-870262d3d051",
-            hairImage:
-                "https://images.unsplash.com/photo-1559599078-0bcb85b4e3c3",
-            comments: "Te conviene un corte gradual para mantener el volumen.",
-        },
-        {
-            service: "Mascarilla de nutrición",
-            stylist: "Estilista 1",
-            client: "Clienta I",
-            date: "2025-04-06",
-            referenceImage:
-                "https://images.unsplash.com/photo-1605379399642-870262d3d051",
-            hairImage:
-                "https://images.unsplash.com/photo-1600180758890-6c861b6b2c7b",
-            comments: "Será necesario hacer una limpieza profunda primero.",
-        },
-        {
-            service: "Corte en capas",
-            stylist: "Estilista 3",
-            client: "Clienta I",
-            date: "2025-05-14",
-            referenceImage:
-                "https://images.unsplash.com/photo-1594824476967-48c8b9642738",
-            hairImage:
-                "https://images.unsplash.com/photo-1600180758890-6c861b6b2c7b",
-            comments: "Podemos probar un tono un poco más claro si lo deseas.",
-        },
-        {
-            service: "Color fantasía",
-            stylist: "Estilista 2",
-            client: "Clienta J",
-            date: "2025-05-22",
-            referenceImage:
-                "https://images.unsplash.com/photo-1594824476967-48c8b9642738",
-            hairImage:
-                "https://images.unsplash.com/photo-1559599078-0bcb85b4e3c3",
-            comments: "Este estilo va perfecto con tu forma de rostro.",
-        },
-        {
-            service: "Mascarilla hidratante",
-            stylist: "Estilista 2",
-            client: "Clienta B",
-            date: "2025-04-05",
-            referenceImage:
-                "https://images.unsplash.com/photo-1594824476967-48c8b9642738",
-            hairImage:
-                "https://images.unsplash.com/photo-1559599078-0bcb85b4e3c3",
-            comments:
-                "Te recomiendo un tratamiento antes de la coloración para evitar daño.",
-        },
-        {
-            service: "Coloración completa",
-            stylist: "Estilista 3",
-            client: "Clienta D",
-            date: "2025-04-08",
-            referenceImage:
-                "https://images.unsplash.com/photo-1605379399642-870262d3d051",
-            hairImage:
-                "https://images.unsplash.com/photo-1600180758890-6c861b6b2c7b",
-            comments: "Será necesario hacer una limpieza profunda primero.",
-        },
-        {
-            service: "Peinado de evento",
-            stylist: "Estilista 2",
-            client: "Clienta E",
-            date: "2025-04-10",
-            referenceImage:
-                "https://images.unsplash.com/photo-1594824476967-48c8b9642738",
-            hairImage:
-                "https://images.unsplash.com/photo-1600180758890-6c861b6b2c7b",
-            comments: "Tu tipo de cabello permite lograr ese look fácilmente.",
-        },
-        {
-            service: "Corte + Tratamiento",
-            stylist: "Estilista 1",
-            client: "Clienta F",
-            date: "2025-04-18",
-            referenceImage:
-                "https://images.unsplash.com/photo-1605379399642-870262d3d051",
-            hairImage:
-                "https://images.unsplash.com/photo-1559599078-0bcb85b4e3c3",
-            comments: "Te conviene un corte gradual para mantener el volumen.",
-        },
-        {
-            service: "Uñas gelish",
-            stylist: "Estilista 2",
-            client: "Clienta G",
-            date: "2025-04-22",
-            referenceImage:
-                "https://images.unsplash.com/photo-1594824476967-48c8b9642738",
-            hairImage:
-                "https://images.unsplash.com/photo-1600180758890-6c861b6b2c7b",
-            comments: "Este estilo va perfecto con tu forma de rostro.",
-        },
-        {
-            service: "Peinado + Limpieza de orzuela",
-            stylist: "Estilista 1",
-            client: "Clienta H",
-            date: "2025-05-01",
-            referenceImage:
-                "https://images.unsplash.com/photo-1605379399642-870262d3d051",
-            hairImage:
-                "https://images.unsplash.com/photo-1600180758890-6c861b6b2c7b",
-            comments: "Será necesario hacer una limpieza profunda primero.",
-        },
-        {
-            service: "Mascarilla de nutrición",
-            stylist: "Estilista 1",
-            client: "Clienta K",
-            date: "2025-06-03",
-            referenceImage:
-                "https://images.unsplash.com/photo-1594824476967-48c8b9642738",
-            hairImage:
-                "https://images.unsplash.com/photo-1559599078-0bcb85b4e3c3",
-            comments: "Podemos probar un tono un poco más claro si lo deseas.",
-        },
-    ]
     const navigate = useNavigate()
+    const { currentUser } = useAuth()
+
+    const { acceptedAppointments, isLoading, error } = useAcceptedAppointments(
+        currentUser?.uid,
+    )
+
+    const renderContent = () => {
+        if (isLoading) {
+            return (
+                <div className="flex justify-center items-center p-10 text-gray-600">
+                    <Loader2 className="w-8 h-8 text-secondary animate-spin mr-3" />
+                    <span>Cargando agenda...</span>
+                </div>
+            )
+        }
+
+        if (error) {
+            return (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg text-center flex items-center justify-center">
+                    <AlertTriangle className="w-5 h-5 mr-2" />
+                    <span>Error al cargar la agenda: {error.message}</span>
+                </div>
+            )
+        }
+
+        if (acceptedAppointments.length === 0) {
+            return (
+                <div className="text-center p-6 bg-white rounded-lg shadow-sm">
+                    <p className="text-gray-500">
+                        No tienes citas confirmadas en tu agenda.
+                    </p>
+                </div>
+            )
+        }
+
+        return <ScheduleVisualizer appointments={acceptedAppointments} />
+    }
 
     return (
-        <div className="p-8 space-y-6 min-h-screen">
+        <div className="p-6 md:p-8 space-y-6 min-h-screen bg-primaryLight">
             <div className="flex items-center justify-between">
-                <h1 className="text-h3 font-heading font-bold">
-                    Agenda completa
+                <h1 className="text-h3 font-heading font-bold text-textMain">
+                    Agenda Confirmada
                 </h1>
                 <Button
                     type="dark"
                     onClick={() => navigate("/stylist/dashboard")}
                 >
-                    Volver al panel
+                    Volver al Panel
                 </Button>
             </div>
-            <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm bg-white p-4">
-                <ScheduleVisualizer tasks={mock_appointments} />
+            <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm bg-white">
+                {renderContent()}
             </div>
         </div>
     )

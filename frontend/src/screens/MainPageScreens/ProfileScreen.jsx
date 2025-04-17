@@ -11,6 +11,8 @@ import {
     query,
     where,
 } from "firebase/firestore"
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
 
 import ProfileHeader from "../../components/profile/ProfileHeader"
 import Sidebar from "../../components/profile/Sidebar"
@@ -21,9 +23,8 @@ import RescheduleModal from "../../components/profile/RescheduleModal"
 import {
     acceptAppointmentSuggestion,
     declineAppointmentSuggestion,
+    requestAppointmentReschedule,
 } from "../../features/booking/services/bookingService"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
 
 function ProfileScreen() {
     const { currentUser, logout } = useAuth()
@@ -58,16 +59,13 @@ function ProfileScreen() {
             setAppointments([])
             return
         }
-
         setIsLoadingAppointments(true)
         setFetchAppointmentsError(null)
-
         const q = query(
             collection(db, "appointments"),
             where("clientId", "==", currentUser.uid),
             orderBy("requestedDateTime", "desc"),
         )
-
         const unsubscribe = onSnapshot(
             q,
             (querySnapshot) => {
@@ -87,7 +85,6 @@ function ProfileScreen() {
                 setAppointments([])
             },
         )
-
         return () => unsubscribe()
     }, [currentUser?.uid])
 
@@ -120,6 +117,78 @@ function ProfileScreen() {
             toast.error(`Error al rechazar: ${error.message}`)
         } finally {
             setActionLoading({ type: null, id: null })
+        }
+    }
+
+    const handleRescheduleClick = (appointment) => {
+        setSelectedAppointmentForReschedule(appointment)
+        try {
+            const initialDate =
+                appointment.requestedDateTime?.toDate() || new Date()
+            setSelectedDate(
+                initialDate instanceof Date
+                    ? initialDate
+                    : new Date(initialDate),
+            )
+            setSelectedTime(
+                initialDate instanceof Date
+                    ? format(initialDate, "HH:mm")
+                    : null,
+            )
+            setCurrentMonth(
+                initialDate instanceof Date ? initialDate : new Date(),
+            )
+        } catch (e) {
+            console.warn(
+                "Could not parse appointment date for reschedule modal",
+                e,
+            )
+            const fallbackDate = new Date()
+            setSelectedDate(fallbackDate)
+            setSelectedTime(null)
+            setCurrentMonth(fallbackDate)
+        }
+        setShowRescheduleModal(true)
+    }
+
+    const saveReschedule = async () => {
+        if (
+            !selectedAppointmentForReschedule ||
+            !selectedDate ||
+            !selectedTime
+        ) {
+            toast.warn("Por favor selecciona una nueva fecha y hora.")
+            return
+        }
+
+        const appointmentId = selectedAppointmentForReschedule.id
+        setActionLoading({ type: "reschedule", id: appointmentId })
+
+        const [hours, minutes] = selectedTime.split(":").map(Number)
+        const newDateTime = new Date(selectedDate)
+        newDateTime.setHours(hours, minutes, 0, 0)
+
+        if (isNaN(newDateTime)) {
+            throw new Error("Fecha u hora inválida seleccionada.")
+        }
+
+        try {
+            await requestAppointmentReschedule(appointmentId, newDateTime)
+
+            toast.success(
+                "Solicitud de reprogramación enviada. El estilista la revisará pronto.",
+            )
+            setShowRescheduleModal(false)
+        } catch (error) {
+            console.error("Error requesting reschedule:", error)
+            toast.error(`Error al reprogramar: ${error.message}`)
+        } finally {
+            if (
+                actionLoading.id === appointmentId &&
+                actionLoading.type === "reschedule"
+            ) {
+                setActionLoading({ type: null, id: null })
+            }
         }
     }
 
@@ -159,63 +228,21 @@ function ProfileScreen() {
             date.getFullYear() === today.getFullYear()
         )
     }
-
     const isPastDate = (date) => {
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         return date < today
     }
-
-    const nextMonth = () => {
+    const nextMonth = () =>
         setCurrentMonth(
-            new Date(
-                currentMonth.getFullYear(),
-                currentMonth.getMonth() + 1,
-                1,
-            ),
+            (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
         )
-    }
-
-    const prevMonth = () => {
+    const prevMonth = () =>
         setCurrentMonth(
-            new Date(
-                currentMonth.getFullYear(),
-                currentMonth.getMonth() - 1,
-                1,
-            ),
+            (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
         )
-    }
     const handleDateClick = (date) => setSelectedDate(date)
     const handleTimeSelect = (time) => setSelectedTime(time)
-
-    const handleRescheduleClick = (appointment) => {
-        setSelectedAppointmentForReschedule(appointment)
-        try {
-            const initialDate =
-                appointment.requestedDateTime?.toDate() || new Date()
-            setSelectedDate(initialDate)
-            setSelectedTime(format(initialDate, "HH:mm"))
-        } catch (e) {
-            console.warn(
-                "Could not parse appointment date for reschedule modal",
-                e,
-            )
-            setSelectedDate(new Date())
-            setSelectedTime(null)
-        }
-        setCurrentMonth(selectedDate || new Date())
-        setShowRescheduleModal(true)
-    }
-
-    const saveReschedule = () => {
-        // TODO: Implement Reschedule Logic in Group 3
-        console.log("Reschedule attempt:", {
-            appointmentId: selectedAppointmentForReschedule?.id,
-            newDate: selectedDate,
-            newTime: selectedTime,
-        })
-        setShowRescheduleModal(false)
-    }
 
     const getMenuItems = () => {
         const baseMenuItems = [
@@ -226,7 +253,6 @@ function ProfileScreen() {
                 active: activeTab === "profile",
             },
         ]
-
         if (user.role === "client") {
             baseMenuItems.push({
                 icon: <Calendar size={20} />,
@@ -241,7 +267,6 @@ function ProfileScreen() {
                 active: activeTab === "preferences",
             })
         }
-
         if (user.role === "stylist") {
             baseMenuItems.push({
                 icon: <ChevronRight size={20} />,
@@ -255,8 +280,6 @@ function ProfileScreen() {
 
     const handleUserUpdate = (updatedUser) => {
         setUser(updatedUser)
-        // TODO: ProfileTab should likely call a service function
-        //       to update Firestore, and we might not need this local update.
     }
 
     return (
@@ -275,7 +298,6 @@ function ProfileScreen() {
 
                     {/* Main content */}
                     <main className="flex-1 p-6 md:p-8 relative">
-                        {" "}
                         {/* Tab content */}
                         {activeTab === "profile" && (
                             <ProfileTab
@@ -283,6 +305,7 @@ function ProfileScreen() {
                                 onUserUpdate={handleUserUpdate}
                             />
                         )}
+
                         {activeTab === "appointments" &&
                             user.role === "client" && (
                                 <AppointmentsTab
@@ -298,6 +321,7 @@ function ProfileScreen() {
                                     actionLoading={actionLoading}
                                 />
                             )}
+
                         {activeTab === "preferences" &&
                             user.role === "client" && <PreferencesTab />}
                     </main>
@@ -322,6 +346,10 @@ function ProfileScreen() {
                     getFirstDayOfMonth={getFirstDayOfMonth}
                     isToday={isToday}
                     isPastDate={isPastDate}
+                    isSaving={
+                        actionLoading.type === "reschedule" &&
+                        actionLoading.id === selectedAppointmentForReschedule.id
+                    }
                 />
             )}
         </div>
