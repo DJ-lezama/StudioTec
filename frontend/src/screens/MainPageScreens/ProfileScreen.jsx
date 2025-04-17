@@ -102,7 +102,6 @@ function ProfileScreen() {
 
     const handleLogout = () => {
         logout()
-        navigate("/")
     }
 
     const formatDate = (dateString) => {

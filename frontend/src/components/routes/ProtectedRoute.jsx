@@ -1,6 +1,7 @@
-import React from "react"
-import { Navigate, useLocation } from "react-router-dom"
+import React, { useEffect, useRef } from "react"
+import { Navigate, useLocation, useNavigate } from "react-router-dom"
 import useAuth from "../../features/auth/hooks/useAuth.js"
+import { toast } from "react-toastify"
 
 function ProtectedRoute({ children }) {
     const { currentUser, loading } = useAuth()
@@ -47,6 +48,24 @@ function StylistRoute({ children }) {
 function ClientRoute({ children }) {
     const { currentUser, loading } = useAuth()
     const location = useLocation()
+    const navigate = useNavigate()
+    const hasTriggeredRef = useRef(false)
+
+    useEffect(() => {
+        if (!loading && currentUser) {
+            if (currentUser.role !== "client") {
+                if (!hasTriggeredRef.current) {
+                    toast.warn(
+                        "Acceso denegado: Solo los clientes pueden agendar citas.",
+                    )
+                    hasTriggeredRef.current = true
+                    navigate("/", { replace: true })
+                }
+            } else {
+                hasTriggeredRef.current = false
+            }
+        }
+    }, [loading, currentUser, navigate])
 
     if (loading) {
         return (
@@ -61,7 +80,7 @@ function ClientRoute({ children }) {
     }
 
     if (currentUser.role !== "client") {
-        return <Navigate to="/" replace />
+        return null
     }
 
     return children

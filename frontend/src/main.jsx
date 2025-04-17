@@ -1,6 +1,8 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
+import { ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 import "./index.css"
 import {
     ClientRoute,
@@ -14,7 +16,6 @@ import ContentWrapper from "./components/layout/ContentWrapper.jsx"
 // Common components
 import Navbar from "./components/Navbar/Navbar.jsx"
 import Footer from "./components/FooterStudioTec.jsx"
-import WelcomeNotification from "./screens/MainPageScreens/WelcomeNotification.jsx"
 
 // Pages
 import HomePage from "./screens/MainPageScreens/HomePage"
@@ -37,10 +38,15 @@ import AuthProvider from "./features/auth/context/AuthProvider.jsx"
 
 createRoot(document.getElementById("root")).render(
     <StrictMode>
-        <AuthProvider>
-            <Router>
-                <Navbar />
-                <WelcomeNotification />
+        <Router>
+            <AuthProvider>
+                <Navbar />+{" "}
+                <ToastContainer
+                    autoClose={3000}
+                    hideProgressBar
+                    position="bottom-right"
+                    theme="colored"
+                />
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route
@@ -172,7 +178,7 @@ createRoot(document.getElementById("root")).render(
                     />
                 </Routes>
                 <Footer />
-            </Router>
-        </AuthProvider>
+            </AuthProvider>
+        </Router>
     </StrictMode>,
 )

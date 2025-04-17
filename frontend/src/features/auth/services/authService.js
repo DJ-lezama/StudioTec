@@ -60,7 +60,6 @@ export const loginUser = async (email, password) => {
             email: user.email,
             ...userData,
         },
-        redirectTo: userData.role === "stylist" ? "/stylist/dashboard" : "/",
     }
 }
 
