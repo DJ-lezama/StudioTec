@@ -1,45 +1,52 @@
-// src/components/ServicesVisualizer/ServiceCreationOverlay.jsx
-import React, { useState, useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import Button from "../common/Button"
-import { Check, X, Camera, Upload, AlertCircle } from "lucide-react"
+import { AlertCircle, Check, Loader2, X } from "lucide-react"
 
 const ServiceCreationOverlay = ({
-    onAdd,
+    onAddOrUpdate,
     onClose,
-    categories = ["Cabello", "Uñas", "Cara"],
+    categoriesAvailable = ["Cabello", "Uñas", "Cara"],
     initialData = null,
     isEditing = false,
+    isSubmitting = false,
+    formError = null,
 }) => {
     const [formData, setFormData] = useState({
         name: "",
         description: "",
         basePrice: "",
         duration: "",
-        category: categories[0] || "",
-        image: "",
+        category: categoriesAvailable[0] || "",
+        imageUrl: "",
     })
-
     const [errors, setErrors] = useState({})
     const [imagePreview, setImagePreview] = useState("")
-    const [isLoading, setIsLoading] = useState(false)
 
-    // Cargar datos iniciales si estamos editando
     useEffect(() => {
-        if (initialData) {
+        if (isEditing && initialData) {
             setFormData({
                 name: initialData.name || "",
                 description: initialData.description || "",
                 basePrice: initialData.basePrice?.toString() || "",
                 duration: initialData.duration?.toString() || "",
-                category: initialData.category || categories[0] || "",
-                image: initialData.image || "",
+                category: initialData.category || categoriesAvailable[0] || "",
+                imageUrl: initialData.imageUrl || initialData.image || "",
             })
-
-            if (initialData.image) {
-                setImagePreview(initialData.image)
-            }
+            setImagePreview(initialData.imageUrl || initialData.image || "")
+            setErrors({})
+        } else {
+            setFormData({
+                name: "",
+                description: "",
+                basePrice: "",
+                duration: "",
+                category: categoriesAvailable[0] || "",
+                imageUrl: "",
+            })
+            setImagePreview("")
+            setErrors({})
         }
-    }, [initialData, categories])
+    }, [initialData, isEditing, categoriesAvailable])
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -47,8 +54,7 @@ const ServiceCreationOverlay = ({
             ...formData,
             [name]: value,
         })
-
-        // Limpiar error cuando el usuario comienza a corregir
+        // Clear validation error for the field being changed
         if (errors[name]) {
             setErrors({
                 ...errors,
@@ -59,13 +65,14 @@ const ServiceCreationOverlay = ({
 
     const validateForm = () => {
         const newErrors = {}
-
         if (!formData.name.trim()) {
             newErrors.name = "El nombre es obligatorio"
         }
-
         if (!formData.description.trim()) {
             newErrors.description = "La descripción es obligatoria"
+        } else if (formData.description.trim().length < 10) {
+            newErrors.description =
+                "La descripción debe tener al menos 10 caracteres."
         }
 
         if (!formData.basePrice) {
@@ -74,7 +81,7 @@ const ServiceCreationOverlay = ({
             isNaN(formData.basePrice) ||
             parseFloat(formData.basePrice) <= 0
         ) {
-            newErrors.basePrice = "Ingresa un precio válido"
+            newErrors.basePrice = "Ingresa un precio válido (mayor que 0)"
         }
 
         if (!formData.duration) {
@@ -83,11 +90,19 @@ const ServiceCreationOverlay = ({
             isNaN(formData.duration) ||
             parseInt(formData.duration) <= 0
         ) {
-            newErrors.duration = "Ingresa una duración válida en minutos"
+            newErrors.duration =
+                "Ingresa una duración válida en minutos (mayor que 0)"
         }
 
-        if (!formData.image) {
-            newErrors.image = "La URL de la imagen es obligatoria"
+        if (!formData.imageUrl) {
+            newErrors.imageUrl = "La URL de la imagen es obligatoria"
+        } else {
+            try {
+                new URL(formData.imageUrl)
+            } catch (e) {
+                console.warn(e)
+                newErrors.imageUrl = "Ingresa una URL válida (ej. https://...)"
+            }
         }
 
         setErrors(newErrors)
@@ -98,99 +113,120 @@ const ServiceCreationOverlay = ({
         const url = e.target.value
         setFormData({
             ...formData,
-            image: url,
+            imageUrl: url,
         })
         setImagePreview(url)
 
-        if (errors.image) {
+        if (errors.imageUrl) {
             setErrors({
                 ...errors,
-                image: null,
+                imageUrl: null,
             })
         }
     }
 
     const handleSubmit = (e) => {
         e.preventDefault()
-
         if (!validateForm()) {
             return
         }
 
-        setIsLoading(true)
+        const serviceData = {
+            name: formData.name.trim(),
+            description: formData.description.trim(),
+            basePrice: parseFloat(formData.basePrice),
+            duration: parseInt(formData.duration),
+            category: formData.category,
+            imageUrl: formData.imageUrl.trim(),
+        }
 
-        // Simulando una carga para dar feedback visual
-        setTimeout(() => {
-            const newService = {
-                name: formData.name,
-                description: formData.description,
-                basePrice: parseFloat(formData.basePrice),
-                duration: parseInt(formData.duration),
-                category: formData.category,
-                image: formData.image,
-            }
-
-            onAdd(newService)
-            setIsLoading(false)
-        }, 600)
+        onAddOrUpdate(serviceData)
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
-            <div className="w-full sm:w-[500px] h-full bg-white shadow-lg flex flex-col overflow-hidden">
+        // Overlay container
+        <div
+            className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm"
+            aria-modal="true"
+            role="dialog"
+        >
+            {/* Form Panel */}
+            <div className="w-full sm:w-[500px] h-full bg-white shadow-lg flex flex-col overflow-hidden transition-transform transform duration-300 ease-out translate-x-0">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
                     <h2 className="text-h5 font-heading font-semibold text-textMain">
                         {isEditing ? "Editar servicio" : "Nuevo servicio"}
                     </h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-500 hover:text-textMain"
+                        className="text-gray-500 hover:text-textMain disabled:opacity-50"
+                        disabled={isSubmitting}
+                        aria-label="Cerrar"
                     >
                         <X size={20} />
                     </button>
                 </div>
 
-                {/* Form Content */}
+                {/* Form Content (Scrollable) */}
                 <div className="flex-1 overflow-y-auto px-4 py-5">
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Nombre */}
+                        {/* Display error message from parent (e.g., Firestore error) */}
+                        {formError && (
+                            <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm flex items-center">
+                                <AlertCircle size={16} className="mr-2" />
+                                <span>{formError}</span>
+                            </div>
+                        )}
+
+                        {/* Name */}
                         <div>
-                            <label className="block text-sm font-medium text-textMain mb-1">
+                            <label
+                                htmlFor="service-name"
+                                className="block text-sm font-medium text-textMain mb-1"
+                            >
                                 Nombre del servicio*
                             </label>
                             <input
+                                id="service-name"
                                 type="text"
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
                                 className={`w-full p-3 border rounded-lg ${
                                     errors.name
-                                        ? "border-red-300 focus:ring-red-200"
-                                        : "border-gray-300 focus:ring-primary"
-                                } focus:ring-2 focus:border-transparent`}
+                                        ? "border-red-300 ring-1 ring-red-200"
+                                        : "border-gray-300 focus:ring-1 focus:ring-primary focus:border-primary"
+                                } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                                 placeholder="Ej. Corte de cabello"
+                                required
+                                disabled={isSubmitting}
                             />
                             {errors.name && (
-                                <p className="mt-1 text-sm text-red-500 flex items-center">
+                                <p className="mt-1 text-xs text-red-500 flex items-center">
                                     <AlertCircle size={14} className="mr-1" />
                                     {errors.name}
                                 </p>
                             )}
                         </div>
 
-                        {/* Categoría */}
+                        {/* Category */}
                         <div>
-                            <label className="block text-sm font-medium text-textMain mb-1">
+                            <label
+                                htmlFor="service-category"
+                                className="block text-sm font-medium text-textMain mb-1"
+                            >
                                 Categoría*
                             </label>
                             <select
+                                id="service-category"
                                 name="category"
                                 value={formData.category}
                                 onChange={handleChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary appearance-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                required
+                                disabled={isSubmitting}
                             >
-                                {categories.map((category) => (
+                                {categoriesAvailable.map((category) => (
                                     <option key={category} value={category}>
                                         {category}
                                     </option>
@@ -198,39 +234,49 @@ const ServiceCreationOverlay = ({
                             </select>
                         </div>
 
-                        {/* Descripción */}
+                        {/* Description */}
                         <div>
-                            <label className="block text-sm font-medium text-textMain mb-1">
+                            <label
+                                htmlFor="service-description"
+                                className="block text-sm font-medium text-textMain mb-1"
+                            >
                                 Descripción*
                             </label>
                             <textarea
+                                id="service-description"
                                 name="description"
                                 value={formData.description}
                                 onChange={handleChange}
                                 className={`w-full p-3 border rounded-lg ${
                                     errors.description
-                                        ? "border-red-300 focus:ring-red-200"
-                                        : "border-gray-300 focus:ring-primary"
-                                } focus:ring-2 focus:border-transparent resize-none`}
-                                placeholder="Describe brevemente el servicio"
+                                        ? "border-red-300 ring-1 ring-red-200"
+                                        : "border-gray-300 focus:ring-1 focus:ring-primary focus:border-primary"
+                                } resize-none disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                                placeholder="Describe brevemente el servicio..."
                                 rows="3"
+                                required
+                                disabled={isSubmitting}
                             />
                             {errors.description && (
-                                <p className="mt-1 text-sm text-red-500 flex items-center">
+                                <p className="mt-1 text-xs text-red-500 flex items-center">
                                     <AlertCircle size={14} className="mr-1" />
                                     {errors.description}
                                 </p>
                             )}
                         </div>
 
-                        {/* Fila de precio y duración */}
+                        {/* Price and Duration Row */}
                         <div className="grid grid-cols-2 gap-4">
-                            {/* Precio */}
+                            {/* Price */}
                             <div>
-                                <label className="block text-sm font-medium text-textMain mb-1">
+                                <label
+                                    htmlFor="service-price"
+                                    className="block text-sm font-medium text-textMain mb-1"
+                                >
                                     Precio (MXN)*
                                 </label>
                                 <input
+                                    id="service-price"
                                     type="number"
                                     name="basePrice"
                                     value={formData.basePrice}
@@ -239,13 +285,15 @@ const ServiceCreationOverlay = ({
                                     step="0.01"
                                     className={`w-full p-3 border rounded-lg ${
                                         errors.basePrice
-                                            ? "border-red-300 focus:ring-red-200"
-                                            : "border-gray-300 focus:ring-primary"
-                                    } focus:ring-2 focus:border-transparent`}
+                                            ? "border-red-300 ring-1 ring-red-200"
+                                            : "border-gray-300 focus:ring-1 focus:ring-primary focus:border-primary"
+                                    } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                                     placeholder="Ej. 250.00"
+                                    required
+                                    disabled={isSubmitting}
                                 />
                                 {errors.basePrice && (
-                                    <p className="mt-1 text-sm text-red-500 flex items-center">
+                                    <p className="mt-1 text-xs text-red-500 flex items-center">
                                         <AlertCircle
                                             size={14}
                                             className="mr-1"
@@ -255,26 +303,33 @@ const ServiceCreationOverlay = ({
                                 )}
                             </div>
 
-                            {/* Duración */}
+                            {/* Duration */}
                             <div>
-                                <label className="block text-sm font-medium text-textMain mb-1">
+                                <label
+                                    htmlFor="service-duration"
+                                    className="block text-sm font-medium text-textMain mb-1"
+                                >
                                     Duración (min)*
                                 </label>
                                 <input
+                                    id="service-duration"
                                     type="number"
                                     name="duration"
                                     value={formData.duration}
                                     onChange={handleChange}
                                     min="1"
+                                    step="1"
                                     className={`w-full p-3 border rounded-lg ${
                                         errors.duration
-                                            ? "border-red-300 focus:ring-red-200"
-                                            : "border-gray-300 focus:ring-primary"
-                                    } focus:ring-2 focus:border-transparent`}
+                                            ? "border-red-300 ring-1 ring-red-200"
+                                            : "border-gray-300 focus:ring-1 focus:ring-primary focus:border-primary"
+                                    } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                                     placeholder="Ej. 60"
+                                    required
+                                    disabled={isSubmitting}
                                 />
                                 {errors.duration && (
-                                    <p className="mt-1 text-sm text-red-500 flex items-center">
+                                    <p className="mt-1 text-xs text-red-500 flex items-center">
                                         <AlertCircle
                                             size={14}
                                             className="mr-1"
@@ -285,43 +340,55 @@ const ServiceCreationOverlay = ({
                             </div>
                         </div>
 
-                        {/* Imagen */}
+                        {/* Image URL */}
                         <div>
-                            <label className="block text-sm font-medium text-textMain mb-1">
+                            <label
+                                htmlFor="service-image-url"
+                                className="block text-sm font-medium text-textMain mb-1"
+                            >
                                 URL de la imagen*
                             </label>
                             <input
+                                id="service-image-url"
                                 type="text"
-                                name="image"
-                                value={formData.image}
+                                name="imageUrl"
+                                value={formData.imageUrl}
                                 onChange={handleImageChange}
                                 className={`w-full p-3 border rounded-lg ${
-                                    errors.image
-                                        ? "border-red-300 focus:ring-red-200"
-                                        : "border-gray-300 focus:ring-primary"
-                                } focus:ring-2 focus:border-transparent`}
+                                    errors.imageUrl
+                                        ? "border-red-300 ring-1 ring-red-200"
+                                        : "border-gray-300 focus:ring-1 focus:ring-primary focus:border-primary"
+                                } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                                 placeholder="https://ejemplo.com/imagen.jpg"
+                                required
+                                disabled={isSubmitting}
                             />
-                            {errors.image && (
-                                <p className="mt-1 text-sm text-red-500 flex items-center">
+                            {errors.imageUrl && (
+                                <p className="mt-1 text-xs text-red-500 flex items-center">
                                     <AlertCircle size={14} className="mr-1" />
-                                    {errors.image}
+                                    {errors.imageUrl}
                                 </p>
                             )}
 
-                            {/* Vista previa de imagen */}
+                            {/* Image Preview Area */}
                             {imagePreview && (
                                 <div className="mt-3 relative">
-                                    <div className="w-full h-40 rounded-lg overflow-hidden bg-gray-100">
+                                    <div className="w-full h-40 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
                                         <img
                                             src={imagePreview}
                                             alt="Vista previa"
                                             className="w-full h-full object-cover"
+                                            // Basic error handling for broken image links
                                             onError={(e) => {
-                                                e.target.src =
-                                                    "https://via.placeholder.com/300x200?text=Error+de+imagen"
+                                                e.target.style.display = "none"
+                                                e.target.nextSibling.style.display =
+                                                    "flex"
                                             }}
                                         />
+                                        {/* Fallback display if image fails to load */}
+                                        <div className="w-full h-full items-center justify-center text-gray-400 text-sm hidden">
+                                            Vista previa no disponible
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -333,51 +400,30 @@ const ServiceCreationOverlay = ({
                     </form>
                 </div>
 
-                {/* Footer */}
-                <div className="p-4 border-t border-gray-200 flex justify-end gap-3">
+                {/* Footer Actions */}
+                <div className="p-4 border-t border-gray-200 flex justify-end gap-3 flex-shrink-0">
                     <Button
                         type="transparent"
                         onClick={onClose}
-                        disabled={isLoading}
+                        disabled={isSubmitting}
                     >
                         Cancelar
                     </Button>
                     <Button
                         type="dark"
                         onClick={handleSubmit}
-                        disabled={isLoading}
-                        className="flex items-center"
+                        disabled={isSubmitting}
+                        className="flex items-center justify-center min-w-[120px]"
                     >
-                        {isLoading ? (
+                        {isSubmitting ? (
                             <>
-                                <svg
-                                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                    ></circle>
-                                    <path
-                                        className="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    ></path>
-                                </svg>
+                                <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" />
                                 {isEditing ? "Actualizando..." : "Guardando..."}
                             </>
                         ) : (
                             <>
-                                <Check size={18} className="mr-2" />
-                                {isEditing
-                                    ? "Actualizar servicio"
-                                    : "Guardar servicio"}
+                                <Check size={18} className="mr-1.5" />
+                                {isEditing ? "Actualizar" : "Guardar"}
                             </>
                         )}
                     </Button>

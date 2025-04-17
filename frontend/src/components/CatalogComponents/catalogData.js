@@ -3,6 +3,7 @@
  * En un entorno real, estos datos vendrían de una API o base de datos
  */
 
+// TODO: Delete this file when we finish removing their usage and transitioning to API
 const catalogData = {
     hair: [
         {
