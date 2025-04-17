@@ -11,6 +11,7 @@ function RegisterScreen({ onSwitch }) {
         password: "",
         confirmPassword: "",
     })
+    const [isStylist, setIsStylist] = useState(false)
     const [error, setError] = useState("")
     const [loadingAuth, setLoadingAuth] = useState(false)
     const { register } = useAuth()
@@ -18,7 +19,7 @@ function RegisterScreen({ onSwitch }) {
     const handleChange = (e) => {
         const { name, value } = e.target
         setForm((prev) => ({ ...prev, [name]: value }))
-        setError("")
+        if (error) setError("")
     }
 
     const validateForm = () => {
@@ -31,7 +32,15 @@ function RegisterScreen({ onSwitch }) {
             setError("El correo electrónico es obligatorio.")
             return false
         }
-        if (form.phone && !/^\d{10}$/.test(form.phone.replace(/\s/g, ""))) {
+        if (!/\S+@\S+\.\S+/.test(form.email)) {
+            setError("Introduce un correo electrónico válido.")
+            return false
+        }
+        const phoneDigits = form.phone.replace(/\s/g, "")
+        if (!phoneDigits) {
+            setError("El número de teléfono es obligatorio.")
+            return false
+        } else if (!/^\d{10}$/.test(phoneDigits)) {
             setError("Introduce un número de teléfono válido de 10 dígitos.")
             return false
         }
@@ -53,7 +62,13 @@ function RegisterScreen({ onSwitch }) {
         setLoadingAuth(true)
         setError("")
         try {
-            await register(form.name, form.email, form.password, form.phone)
+            await register(
+                form.name,
+                form.email,
+                form.password,
+                form.phone,
+                isStylist,
+            )
         } catch (err) {
             console.error("Registration Screen Error:", err)
             if (
@@ -63,7 +78,6 @@ function RegisterScreen({ onSwitch }) {
             ) {
                 setError(err.message)
             } else {
-                // Fallback generic error
                 setError(
                     "Error al crear la cuenta. Inténtalo de nuevo más tarde.",
                 )
@@ -75,19 +89,15 @@ function RegisterScreen({ onSwitch }) {
 
     return (
         <div className="flex items-center justify-center bg-primaryLight px-6 py-12 sm:py-16">
-            {" "}
             <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
-                {" "}
                 <h2 className="text-h3 font-heading font-bold text-textMain mb-6 text-center">
-                    {" "}
                     Crear Cuenta
                 </h2>
                 {error && (
                     <div
-                        className="bg-red-100 border border-red-300 text-red-700 p-3 rounded-lg mb-4 text-sm"
+                        className="bg-red-100 border border-red-300 text-red-700 p-3 rounded-lg mb-4 text-sm text-center"
                         role="alert"
                     >
-                        {" "}
                         {error}
                     </div>
                 )}
@@ -98,8 +108,7 @@ function RegisterScreen({ onSwitch }) {
                             htmlFor="name"
                             className="block text-sm font-medium text-textMain mb-1"
                         >
-                            {" "}
-                            Nombre completo{" "}
+                            Nombre completo*
                         </label>
                         <input
                             id="name"
@@ -119,8 +128,7 @@ function RegisterScreen({ onSwitch }) {
                             htmlFor="email"
                             className="block text-sm font-medium text-textMain mb-1"
                         >
-                            {" "}
-                            Correo electrónico{" "}
+                            Correo electrónico*
                         </label>
                         <input
                             id="email"
@@ -140,8 +148,7 @@ function RegisterScreen({ onSwitch }) {
                             htmlFor="phone"
                             className="block text-sm font-medium text-textMain mb-1"
                         >
-                            {" "}
-                            Teléfono (10 dígitos){" "}
+                            Teléfono (10 dígitos)*
                         </label>
                         <input
                             id="phone"
@@ -151,6 +158,9 @@ function RegisterScreen({ onSwitch }) {
                             value={form.phone}
                             onChange={handleChange}
                             required
+                            maxLength="10"
+                            pattern="\d{10}"
+                            title="Introduce 10 dígitos numéricos"
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary"
                         />
                     </div>
@@ -161,8 +171,7 @@ function RegisterScreen({ onSwitch }) {
                             htmlFor="password"
                             className="block text-sm font-medium text-textMain mb-1"
                         >
-                            {" "}
-                            Contraseña (mín. 6 caracteres){" "}
+                            Contraseña (mín. 6 caracteres)*
                         </label>
                         <input
                             id="password"
@@ -182,8 +191,7 @@ function RegisterScreen({ onSwitch }) {
                             htmlFor="confirmPassword"
                             className="block text-sm font-medium text-textMain mb-1"
                         >
-                            {" "}
-                            Confirmar contraseña{" "}
+                            Confirmar contraseña*
                         </label>
                         <input
                             id="confirmPassword"
@@ -197,17 +205,33 @@ function RegisterScreen({ onSwitch }) {
                         />
                     </div>
 
+                    {/* Stylist Toggle */}
+                    <div className="pt-2">
+                        <label className="flex items-center gap-3 cursor-pointer text-sm text-textMain select-none">
+                            <input
+                                type="checkbox"
+                                checked={isStylist}
+                                onChange={(e) => setIsStylist(e.target.checked)}
+                                className="rounded border-gray-300 text-secondary shadow-sm focus:border-secondary focus:ring focus:ring-offset-0 focus:ring-secondary/50 h-4 w-4"
+                            />
+                            Registrarse como Estilista
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1 pl-7">
+                            (Marca esto si eres parte del personal del salón)
+                        </p>
+                    </div>
+
                     {/* Submit Button */}
                     <Button
                         type="dark"
-                        className="w-full !py-3 !text-base"
+                        className="w-full !py-3 !text-base mt-4"
                         disabled={loadingAuth}
+                        buttonType="submit"
                     >
                         {loadingAuth ? (
                             <>
-                                {" "}
-                                <Loader2 className="w-5 h-5 mr-2 inline animate-spin" />{" "}
-                                Creando cuenta...{" "}
+                                <Loader2 className="w-5 h-5 mr-2 inline animate-spin" />
+                                Creando cuenta...
                             </>
                         ) : (
                             "Registrarse"
