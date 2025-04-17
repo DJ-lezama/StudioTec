@@ -3,6 +3,7 @@ import {
     collection,
     doc,
     serverTimestamp,
+    Timestamp,
     updateDoc,
 } from "firebase/firestore"
 import { db } from "../../../../firebaseConfig.js"
@@ -46,9 +47,7 @@ export const updateAppointmentStatus = async (appointmentId, status) => {
         const appointmentDocRef = doc(db, "appointments", appointmentId)
         await updateDoc(appointmentDocRef, {
             status: status,
-            // TODO: Optionally we could add an 'updatedAt: serverTimestamp()' field here if needed
-            // Also, need to modify the data structure in Firestore to include this field
-            // updatedAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
         })
         console.log(`Appointment ${appointmentId} status updated to: ${status}`)
     } catch (error) {
@@ -57,5 +56,58 @@ export const updateAppointmentStatus = async (appointmentId, status) => {
             error,
         )
         throw new Error(`Failed to update appointment status to ${status}.`)
+    }
+}
+
+/**
+ * Adds or updates a suggestion (comment and alternative time) for an appointment.
+ * Sets the appointment status to 'suggestion_made'.
+ * @param {string} appointmentId - The ID of the appointment document.
+ * @param {Date} suggestedDateTime - The suggested date and time as a JavaScript Date object.
+ * @param {string} suggestionComment - The comment from the stylist.
+ * @returns {Promise<void>} A promise that resolves when the update is complete.
+ * @throws {Error} Throws an error if required parameters are missing or the Firestore operation fails.
+ */
+export const updateAppointmentSuggestion = async (
+    appointmentId,
+    suggestedDateTime,
+    suggestionComment,
+) => {
+    if (!appointmentId || !suggestedDateTime || !suggestionComment) {
+        throw new Error(
+            "Appointment ID, suggested date/time, and comment are required.",
+        )
+    }
+
+    if (
+        !(suggestedDateTime instanceof Date) ||
+        isNaN(suggestedDateTime.getTime())
+    ) {
+        throw new Error("Invalid Date object provided for suggestedDateTime.")
+    }
+    if (
+        typeof suggestionComment !== "string" ||
+        suggestionComment.trim() === ""
+    ) {
+        throw new Error("Suggestion comment cannot be empty.")
+    }
+
+    try {
+        const appointmentDocRef = doc(db, "appointments", appointmentId)
+        await updateDoc(appointmentDocRef, {
+            suggestedDateTime: Timestamp.fromDate(suggestedDateTime),
+            suggestionComment: suggestionComment.trim(),
+            status: "suggestion_made",
+            updatedAt: serverTimestamp(),
+        })
+        console.log(`Suggestion added/updated for appointment ${appointmentId}`)
+    } catch (error) {
+        console.error(
+            `Error adding/updating suggestion for appointment ${appointmentId}:`,
+            error,
+        )
+        throw new Error(
+            "Failed to add or update appointment suggestion in Firestore.",
+        )
     }
 }

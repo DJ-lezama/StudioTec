@@ -9,12 +9,14 @@ import {
 import { db } from "../../../../firebaseConfig"
 
 /**
- * Custom hook to fetch and listen for real-time updates on pending appointment requests.
- * Fetches appointments from the 'appointments' collection where status is 'pending',
+ * Custom hook to fetch and listen for real-time updates on actionable appointment requests.
+ * Fetches appointments from the 'appointments' collection where status is 'pending' OR 'suggestion_made',
  * ordered by creation time.
+ * These represent appointments requiring stylist or client action.
  *
  * @returns {{ pendingRequests: Array, isLoading: boolean, error: Error|null }} An object containing:
- * - pendingRequests: An array of pending appointment objects, each including its Firestore document ID.
+ * - pendingRequests: An array of pending or suggestion-made appointment objects,
+ *                    each including its Firestore document ID.
  * - isLoading: Boolean indicating if the initial data fetch is in progress.
  * - error: An error object if fetching failed, otherwise null.
  */
@@ -29,7 +31,7 @@ export const usePendingRequests = () => {
 
         const q = query(
             collection(db, "appointments"),
-            where("status", "==", "pending"),
+            where("status", "in", ["pending", "suggestion_made"]),
             orderBy("createdAt", "asc"),
         )
 
@@ -46,7 +48,7 @@ export const usePendingRequests = () => {
                 setError(null)
             },
             (err) => {
-                console.error("Error fetching pending requests:", err)
+                console.error("Error fetching pending/suggested requests:", err)
                 setError(err)
                 setPendingRequests([])
                 setIsLoading(false)

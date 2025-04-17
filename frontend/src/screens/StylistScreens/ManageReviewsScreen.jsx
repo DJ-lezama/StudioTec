@@ -1,6 +1,6 @@
 // src/screens/StylistScreens/ManageReviewsScreen.jsx
 import React, { useState } from "react"
-import SelectableReviewCard from "../../components/ReviewsVisualizer/SelectableReviewCard"
+import SelectableReviewCard from "../../components/reviews/SelectableReviewCard"
 import Button from "../../components/common/Button"
 import { useNavigate } from "react-router-dom"
 

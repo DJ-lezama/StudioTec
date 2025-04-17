@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react"
 import { describe, it, expect } from "vitest"
-import RequestCardCarousel from "../components/RequestsVisualizer/RequestCardCarousel.jsx"
+import RequestCardCarousel from "../components/requests/RequestCardCarousel.jsx"
 
 const mockRequests = [
     {

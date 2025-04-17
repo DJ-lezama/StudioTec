@@ -14,7 +14,7 @@ import {
 import ContentWrapper from "./components/layout/ContentWrapper.jsx"
 
 // Common components
-import Navbar from "./components/Navbar/Navbar.jsx"
+import Navbar from "./components/navbar/Navbar.jsx"
 import Footer from "./components/FooterStudioTec.jsx"
 
 // Pages

@@ -1,9 +1,9 @@
 // src/screens/StylistScreens/DashboardScreen.jsx
 import React from "react"
 import { useNavigate } from "react-router-dom"
-import SchedulePreview from "../../components/StylistDashboard/SchedulePreview"
-import StatWidget from "../../components/StylistDashboard/StatWidget.jsx"
-import ReviewPreview from "../../components/StylistDashboard/ReviewPreview"
+import SchedulePreview from "../../components/stylist_dashboard/SchedulePreview"
+import StatWidget from "../../components/stylist_dashboard/StatWidget.jsx"
+import ReviewPreview from "../../components/stylist_dashboard/ReviewPreview"
 
 const DashboardScreen = () => {
     const navigate = useNavigate()
