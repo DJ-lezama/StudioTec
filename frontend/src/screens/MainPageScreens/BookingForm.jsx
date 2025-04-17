@@ -60,6 +60,16 @@ const findCategoryByServiceId = (serviceId) => {
     return ""
 }
 
+const findServiceDetails = (serviceId) => {
+    for (const categoryKey in catalogData) {
+        const service = catalogData[categoryKey].find((s) => s.id === serviceId)
+        if (service) {
+            return service
+        }
+    }
+    return null
+}
+
 function BookingForm() {
     const [step, setStep] = useState(1)
     const [formData, setFormData] = useState(initialFormData)
@@ -114,11 +124,7 @@ function BookingForm() {
 
     const nextStep = () => setStep(step + 1)
     const prevStep = () => setStep(step - 1)
-
-    const handleFormUpdate = (newData) => {
-        setFormData(newData)
-    }
-
+    const handleFormUpdate = (newData) => setFormData(newData)
     const formatDate = (dateString) => {
         if (!dateString) return ""
         try {
@@ -133,12 +139,8 @@ function BookingForm() {
         }
     }
 
-    const selectedService =
-        formData.category && catalogData[formData.category]
-            ? catalogData[formData.category].find(
-                  (s) => s.id === formData.serviceId,
-              )?.title
-            : ""
+    const selectedServiceDetails = findServiceDetails(formData.serviceId)
+    const selectedService = selectedServiceDetails?.title || ""
     const selectedStylist =
         stylists.find((s) => s.id === formData.stylistId)?.name || ""
 
@@ -146,7 +148,6 @@ function BookingForm() {
         if (e) e.preventDefault()
         setSubmitError(null)
 
-        // Basic check before final submission (can be enhanced)
         if (
             !formData.serviceId ||
             !formData.stylistId ||
@@ -161,10 +162,22 @@ function BookingForm() {
             )
             return
         }
-
-        // TODO Redundant check for user authentication (can be removed if not needed)
         if (!currentUser?.uid) {
             setSubmitError("Debes iniciar sesión para completar la reserva.")
+            return
+        }
+
+        const serviceDuration = selectedServiceDetails?.duration
+        if (typeof serviceDuration !== "number" || serviceDuration <= 0) {
+            console.error(
+                "Invalid or missing duration for service:",
+                formData.serviceId,
+                selectedServiceDetails,
+            )
+            setSubmitError(
+                "No se pudo determinar la duración del servicio seleccionado.",
+            )
+            toast.error("Error: Duración del servicio inválida.")
             return
         }
 
@@ -186,6 +199,7 @@ function BookingForm() {
                 stylistName: selectedStylist,
                 serviceId: formData.serviceId,
                 serviceName: selectedService,
+                duration: serviceDuration,
                 requestedDateTime: Timestamp.fromDate(requestedDate),
                 status: "pending",
                 clientNotes: formData.comments || "",
@@ -282,7 +296,6 @@ function BookingForm() {
     return (
         <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-16 bg-primaryLight">
             <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8">
-                {" "}
                 <h1 className="text-h2 font-heading font-bold text-textMain mb-6 text-center md:text-left">
                     Agenda tu cita
                 </h1>

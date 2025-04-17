@@ -1,18 +1,18 @@
 import React, { useState } from "react"
-import { useNavigate } from "react-router-dom"
 import Button from "../../../components/common/Button"
 import useAuth from "../../../features/auth/hooks/useAuth.js"
+import { Loader2 } from "lucide-react"
 
 function RegisterScreen({ onSwitch }) {
     const [form, setForm] = useState({
         name: "",
         email: "",
+        phone: "",
         password: "",
         confirmPassword: "",
     })
     const [error, setError] = useState("")
     const [loadingAuth, setLoadingAuth] = useState(false)
-    const navigate = useNavigate()
     const { register } = useAuth()
 
     const handleChange = (e) => {
@@ -22,6 +22,7 @@ function RegisterScreen({ onSwitch }) {
     }
 
     const validateForm = () => {
+        setError("")
         if (!form.name.trim()) {
             setError("El nombre es obligatorio.")
             return false
@@ -30,14 +31,16 @@ function RegisterScreen({ onSwitch }) {
             setError("El correo electrónico es obligatorio.")
             return false
         }
-        if (form.password !== form.confirmPassword) {
-            setError("Las contraseñas no coinciden.")
+        if (form.phone && !/^\d{10}$/.test(form.phone.replace(/\s/g, ""))) {
+            setError("Introduce un número de teléfono válido de 10 dígitos.")
             return false
         }
-        // Firebase enforces password length (min 6) automatically,
-        // but we can keep a check here for immediate feedback.
         if (form.password.length < 6) {
             setError("La contraseña debe tener al menos 6 caracteres.")
+            return false
+        }
+        if (form.password !== form.confirmPassword) {
+            setError("Las contraseñas no coinciden.")
             return false
         }
         return true
@@ -50,26 +53,20 @@ function RegisterScreen({ onSwitch }) {
         setLoadingAuth(true)
         setError("")
         try {
-            await register(form.name, form.email, form.password)
-            navigate("/") // Redirect to home page after successful registration
+            await register(form.name, form.email, form.password, form.phone)
         } catch (err) {
-            console.error("Firebase Registration Error:", err)
-            switch (err.code) {
-                case "auth/email-already-in-use":
-                    setError("Este correo electrónico ya está registrado.")
-                    break
-                case "auth/invalid-email":
-                    setError("El formato del correo electrónico no es válido.")
-                    break
-                case "auth/weak-password":
-                    setError(
-                        "La contraseña es demasiado débil. Debe tener al menos 6 caracteres.",
-                    )
-                    break
-                default:
-                    setError(
-                        "Error al crear la cuenta. Inténtalo de nuevo más tarde.",
-                    )
+            console.error("Registration Screen Error:", err)
+            if (
+                err.message &&
+                (err.code?.startsWith("auth/") ||
+                    typeof err.code === "undefined")
+            ) {
+                setError(err.message)
+            } else {
+                // Fallback generic error
+                setError(
+                    "Error al crear la cuenta. Inténtalo de nuevo más tarde.",
+                )
             }
         } finally {
             setLoadingAuth(false)
@@ -77,63 +74,95 @@ function RegisterScreen({ onSwitch }) {
     }
 
     return (
-        <div className="flex items-center justify-center bg-primaryLight px-6 py-16">
-            <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-md">
-                <h2 className="text-h3 font-heading font-bold text-textMain mb-6">
-                    Crear cuenta
+        <div className="flex items-center justify-center bg-primaryLight px-6 py-12 sm:py-16">
+            {" "}
+            <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+                {" "}
+                <h2 className="text-h3 font-heading font-bold text-textMain mb-6 text-center">
+                    {" "}
+                    Crear Cuenta
                 </h2>
-
                 {error && (
-                    <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">
+                    <div
+                        className="bg-red-100 border border-red-300 text-red-700 p-3 rounded-lg mb-4 text-sm"
+                        role="alert"
+                    >
+                        {" "}
                         {error}
                     </div>
                 )}
-
                 <form onSubmit={handleRegister} className="space-y-4">
+                    {/* Name Input */}
                     <div>
                         <label
                             htmlFor="name"
                             className="block text-sm font-medium text-textMain mb-1"
                         >
-                            Nombre completo
+                            {" "}
+                            Nombre completo{" "}
                         </label>
                         <input
                             id="name"
                             type="text"
                             name="name"
-                            placeholder="Tu nombre completo"
+                            placeholder="Tu nombre"
                             value={form.name}
                             onChange={handleChange}
                             required
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary"
                         />
                     </div>
 
+                    {/* Email Input */}
                     <div>
                         <label
                             htmlFor="email"
                             className="block text-sm font-medium text-textMain mb-1"
                         >
-                            Correo electrónico
+                            {" "}
+                            Correo electrónico{" "}
                         </label>
                         <input
                             id="email"
                             type="email"
                             name="email"
-                            placeholder="ejemplo@correo.com"
+                            placeholder="tu@correo.com"
                             value={form.email}
                             onChange={handleChange}
                             required
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary"
                         />
                     </div>
 
+                    {/* Phone Input */}
+                    <div>
+                        <label
+                            htmlFor="phone"
+                            className="block text-sm font-medium text-textMain mb-1"
+                        >
+                            {" "}
+                            Teléfono (10 dígitos){" "}
+                        </label>
+                        <input
+                            id="phone"
+                            type="tel"
+                            name="phone"
+                            placeholder="Ej. 5512345678"
+                            value={form.phone}
+                            onChange={handleChange}
+                            required
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary"
+                        />
+                    </div>
+
+                    {/* Password Input */}
                     <div>
                         <label
                             htmlFor="password"
                             className="block text-sm font-medium text-textMain mb-1"
                         >
-                            Contraseña (mín. 6 caracteres)
+                            {" "}
+                            Contraseña (mín. 6 caracteres){" "}
                         </label>
                         <input
                             id="password"
@@ -143,16 +172,18 @@ function RegisterScreen({ onSwitch }) {
                             value={form.password}
                             onChange={handleChange}
                             required
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary"
                         />
                     </div>
 
+                    {/* Confirm Password Input */}
                     <div>
                         <label
                             htmlFor="confirmPassword"
                             className="block text-sm font-medium text-textMain mb-1"
                         >
-                            Confirmar contraseña
+                            {" "}
+                            Confirmar contraseña{" "}
                         </label>
                         <input
                             id="confirmPassword"
@@ -162,23 +193,32 @@ function RegisterScreen({ onSwitch }) {
                             value={form.confirmPassword}
                             onChange={handleChange}
                             required
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary"
                         />
                     </div>
 
+                    {/* Submit Button */}
                     <Button
                         type="dark"
-                        className="w-full"
+                        className="w-full !py-3 !text-base"
                         disabled={loadingAuth}
                     >
-                        {loadingAuth ? "Creando cuenta..." : "Registrarse"}
+                        {loadingAuth ? (
+                            <>
+                                {" "}
+                                <Loader2 className="w-5 h-5 mr-2 inline animate-spin" />{" "}
+                                Creando cuenta...{" "}
+                            </>
+                        ) : (
+                            "Registrarse"
+                        )}
                     </Button>
                 </form>
-
+                {/* Switch to Log in */}
                 <p className="mt-6 text-sm text-center text-gray-600">
                     ¿Ya tienes cuenta?{" "}
                     <button
-                        className="text-secondary font-medium hover:underline"
+                        className="text-secondary font-medium hover:underline focus:outline-none"
                         onClick={onSwitch}
                     >
                         Inicia sesión
