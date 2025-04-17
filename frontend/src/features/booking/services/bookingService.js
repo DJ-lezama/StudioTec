@@ -1,7 +1,9 @@
 import {
     addDoc,
     collection,
+    deleteField,
     doc,
+    getDoc,
     serverTimestamp,
     Timestamp,
     updateDoc,
@@ -91,7 +93,6 @@ export const updateAppointmentSuggestion = async (
     ) {
         throw new Error("Suggestion comment cannot be empty.")
     }
-
     try {
         const appointmentDocRef = doc(db, "appointments", appointmentId)
         await updateDoc(appointmentDocRef, {
@@ -109,5 +110,74 @@ export const updateAppointmentSuggestion = async (
         throw new Error(
             "Failed to add or update appointment suggestion in Firestore.",
         )
+    }
+}
+
+/**
+ * Accepts a stylist's suggested time for an appointment.
+ * Updates status to 'accepted', sets requestedDateTime to suggestedDateTime,
+ * and removes suggestion fields.
+ * @param {string} appointmentId - The ID of the appointment to update.
+ * @returns {Promise<void>}
+ * @throws {Error} If appointment or suggestion data is missing, or update fails.
+ */
+export const acceptAppointmentSuggestion = async (appointmentId) => {
+    if (!appointmentId) {
+        throw new Error("Appointment ID is required.")
+    }
+
+    const appointmentDocRef = doc(db, "appointments", appointmentId)
+
+    const docSnap = await getDoc(appointmentDocRef)
+
+    if (!docSnap.exists()) {
+        throw new Error("Appointment not found.")
+    }
+
+    const data = docSnap.data()
+    if (data.status !== "suggestion_made" || !data.suggestedDateTime) {
+        throw new Error("No valid suggestion found to accept.")
+    }
+
+    try {
+        await updateDoc(appointmentDocRef, {
+            status: "accepted",
+            requestedDateTime: data.suggestedDateTime,
+            suggestedDateTime: deleteField(),
+            suggestionComment: deleteField(),
+            updatedAt: serverTimestamp(),
+        })
+
+        console.log(`Suggestion accepted for appointment ${appointmentId}`)
+    } catch (error) {
+        console.error(`Error accepting suggestion for ${appointmentId}:`, error)
+        throw new Error(`Failed to accept suggestion: ${error.message}`)
+    }
+}
+
+/**
+ * Declines a stylist's suggested time for an appointment.
+ * Reverts status to 'pending' and removes suggestion fields.
+ * @param {string} appointmentId - The ID of the appointment to update.
+ * @returns {Promise<void>}
+ * @throws {Error} If update fails.
+ */
+export const declineAppointmentSuggestion = async (appointmentId) => {
+    if (!appointmentId) {
+        throw new Error("Appointment ID is required.")
+    }
+    const appointmentDocRef = doc(db, "appointments", appointmentId)
+
+    try {
+        await updateDoc(appointmentDocRef, {
+            status: "pending",
+            suggestedDateTime: deleteField(),
+            suggestionComment: deleteField(),
+            updatedAt: serverTimestamp(),
+        })
+        console.log(`Suggestion declined for appointment ${appointmentId}`)
+    } catch (error) {
+        console.error(`Error declining suggestion for ${appointmentId}:`, error)
+        throw new Error(`Failed to decline suggestion: ${error.message}`)
     }
 }

@@ -1,7 +1,16 @@
 import React, { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Calendar, ChevronRight, Settings, User } from "lucide-react"
+import { toast } from "react-toastify"
 import useAuth from "../../features/auth/hooks/useAuth.js"
+import { db } from "../../../firebaseConfig.js"
+import {
+    collection,
+    onSnapshot,
+    orderBy,
+    query,
+    where,
+} from "firebase/firestore"
 
 import ProfileHeader from "../../components/profile/ProfileHeader"
 import Sidebar from "../../components/profile/Sidebar"
@@ -9,67 +18,139 @@ import ProfileTab from "../../components/profile/tabs/ProfileTab"
 import AppointmentsTab from "../../components/profile/tabs/AppointmentsTab"
 import PreferencesTab from "../../components/profile/tabs/PreferencesTab"
 import RescheduleModal from "../../components/profile/RescheduleModal"
+import {
+    acceptAppointmentSuggestion,
+    declineAppointmentSuggestion,
+} from "../../features/booking/services/bookingService"
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
 
 function ProfileScreen() {
     const { currentUser, logout } = useAuth()
     const navigate = useNavigate()
 
     const [activeTab, setActiveTab] = useState("profile")
-    const [showSuccess, setShowSuccess] = useState(false)
+    const [user, setUser] = useState(currentUser)
+
+    const [appointments, setAppointments] = useState([])
+    const [isLoadingAppointments, setIsLoadingAppointments] = useState(true)
+    const [fetchAppointmentsError, setFetchAppointmentsError] = useState(null)
+    const [actionLoading, setActionLoading] = useState({ type: null, id: null })
+
     const [showRescheduleModal, setShowRescheduleModal] = useState(false)
-    const [selectedAppointment, setSelectedAppointment] = useState(null)
+    const [
+        selectedAppointmentForReschedule,
+        setSelectedAppointmentForReschedule,
+    ] = useState(null)
     const [selectedDate, setSelectedDate] = useState(null)
     const [selectedTime, setSelectedTime] = useState(null)
     const [currentMonth, setCurrentMonth] = useState(new Date())
-    const [user, setUser] = useState(currentUser)
 
-    // TODO: Fetch user data from the server
-    // Sample appointments data
-    const [appointments, setAppointments] = useState([
-        {
-            id: "apt1",
-            service: "Corte de cabello",
-            date: "2025-04-28",
-            time: "14:30",
-            stylist: "Estilista A",
-            status: "upcoming",
-        },
-        {
-            id: "apt2",
-            service: "Manicure",
-            date: "2025-03-15",
-            time: "10:00",
-            stylist: "Estilista B",
-            status: "completed",
-        },
-    ])
-
-    // Filtered appointments
-    const upcomingAppointments = appointments.filter(
-        (apt) => apt.status === "upcoming",
-    )
-    const pastAppointments = appointments.filter(
-        (apt) => apt.status === "completed",
-    )
-
-    // Redirect if no user
     useEffect(() => {
         if (!currentUser) {
             navigate("/auth")
         }
     }, [currentUser, navigate])
 
+    useEffect(() => {
+        if (!currentUser?.uid) {
+            setIsLoadingAppointments(false)
+            setAppointments([])
+            return
+        }
+
+        setIsLoadingAppointments(true)
+        setFetchAppointmentsError(null)
+
+        const q = query(
+            collection(db, "appointments"),
+            where("clientId", "==", currentUser.uid),
+            orderBy("requestedDateTime", "desc"),
+        )
+
+        const unsubscribe = onSnapshot(
+            q,
+            (querySnapshot) => {
+                const fetchedAppointments = querySnapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }))
+                setAppointments(fetchedAppointments)
+                setIsLoadingAppointments(false)
+            },
+            (error) => {
+                console.error("Error fetching appointments:", error)
+                setFetchAppointmentsError(
+                    "Error al cargar tus citas. Intenta recargar la página.",
+                )
+                setIsLoadingAppointments(false)
+                setAppointments([])
+            },
+        )
+
+        return () => unsubscribe()
+    }, [currentUser?.uid])
+
     if (!currentUser) return null
 
-    // Calendar utility functions
-    const getDaysInMonth = (year, month) => {
-        return new Date(year, month + 1, 0).getDate()
+    const handleAcceptSuggestion = async (appointmentId) => {
+        if (!appointmentId) return
+        setActionLoading({ type: "accept", id: appointmentId })
+        try {
+            await acceptAppointmentSuggestion(appointmentId)
+            toast.success("¡Propuesta aceptada! Tu cita ha sido confirmada.")
+        } catch (error) {
+            console.error("Error accepting suggestion:", error)
+            toast.error(`Error al aceptar: ${error.message}`)
+        } finally {
+            setActionLoading({ type: null, id: null })
+        }
     }
 
-    const getFirstDayOfMonth = (year, month) => {
-        return new Date(year, month, 1).getDay()
+    const handleDeclineSuggestion = async (appointmentId) => {
+        if (!appointmentId) return
+        setActionLoading({ type: "decline", id: appointmentId })
+        try {
+            await declineAppointmentSuggestion(appointmentId)
+            toast.info(
+                "Propuesta rechazada. La solicitud vuelve a estar pendiente para revisión del estilista.",
+            )
+        } catch (error) {
+            console.error("Error declining suggestion:", error)
+            toast.error(`Error al rechazar: ${error.message}`)
+        } finally {
+            setActionLoading({ type: null, id: null })
+        }
     }
 
+    const formatDate = (timestamp) => {
+        if (!timestamp) return "Fecha no especificada"
+        try {
+            const date = timestamp.toDate()
+            return format(date, "EEEE d 'de' MMMM, yyyy 'a las' HH:mm 'hrs'", {
+                locale: es,
+            })
+        } catch (e) {
+            if (timestamp instanceof Date) {
+                try {
+                    return format(
+                        timestamp,
+                        "EEEE d 'de' MMMM, yyyy 'a las' HH:mm 'hrs'",
+                        { locale: es },
+                    )
+                } catch (formatErr) {
+                    console.warn("Error formatting JS Date:", formatErr)
+                }
+            }
+            console.warn("Error formatting date:", e, timestamp)
+            return "Fecha inválida"
+        }
+    }
+
+    const getDaysInMonth = (year, month) =>
+        new Date(year, month + 1, 0).getDate()
+    const getFirstDayOfMonth = (year, month) =>
+        new Date(year, month, 1).getDay()
     const isToday = (date) => {
         const today = new Date()
         return (
@@ -104,44 +185,36 @@ function ProfileScreen() {
             ),
         )
     }
+    const handleDateClick = (date) => setSelectedDate(date)
+    const handleTimeSelect = (time) => setSelectedTime(time)
 
-    const handleDateClick = (date) => {
-        setSelectedDate(date)
-    }
-
-    const handleTimeSelect = (time) => {
-        setSelectedTime(time)
-    }
-
-    const handleReschedule = (appointment) => {
-        setSelectedAppointment(appointment)
-        setSelectedDate(new Date(appointment.date))
-        setSelectedTime(appointment.time)
+    const handleRescheduleClick = (appointment) => {
+        setSelectedAppointmentForReschedule(appointment)
+        try {
+            const initialDate =
+                appointment.requestedDateTime?.toDate() || new Date()
+            setSelectedDate(initialDate)
+            setSelectedTime(format(initialDate, "HH:mm"))
+        } catch (e) {
+            console.warn(
+                "Could not parse appointment date for reschedule modal",
+                e,
+            )
+            setSelectedDate(new Date())
+            setSelectedTime(null)
+        }
+        setCurrentMonth(selectedDate || new Date())
         setShowRescheduleModal(true)
     }
 
     const saveReschedule = () => {
-        if (!selectedAppointment || !selectedDate || !selectedTime) return
-
-        const updated = appointments.map((apt) =>
-            apt.id === selectedAppointment.id
-                ? {
-                      ...apt,
-                      date: selectedDate.toISOString().split("T")[0],
-                      time: selectedTime,
-                  }
-                : apt,
-        )
-
-        setAppointments(updated)
+        // TODO: Implement Reschedule Logic in Group 3
+        console.log("Reschedule attempt:", {
+            appointmentId: selectedAppointmentForReschedule?.id,
+            newDate: selectedDate,
+            newTime: selectedTime,
+        })
         setShowRescheduleModal(false)
-        setShowSuccess(true)
-        setTimeout(() => setShowSuccess(false), 3000)
-    }
-
-    const formatDate = (dateString) => {
-        const options = { year: "numeric", month: "long", day: "numeric" }
-        return new Date(dateString).toLocaleDateString("es-MX", options)
     }
 
     const getMenuItems = () => {
@@ -149,9 +222,7 @@ function ProfileScreen() {
             {
                 icon: <User size={20} />,
                 label: "Información personal",
-                action: () => {
-                    setActiveTab("profile")
-                },
+                action: () => setActiveTab("profile"),
                 active: activeTab === "profile",
             },
         ]
@@ -163,7 +234,6 @@ function ProfileScreen() {
                 action: () => setActiveTab("appointments"),
                 active: activeTab === "appointments",
             })
-
             baseMenuItems.push({
                 icon: <Settings size={20} />,
                 label: "Preferencias",
@@ -180,12 +250,13 @@ function ProfileScreen() {
                 active: false,
             })
         }
-
         return baseMenuItems
     }
 
     const handleUserUpdate = (updatedUser) => {
         setUser(updatedUser)
+        // TODO: ProfileTab should likely call a service function
+        //       to update Firestore, and we might not need this local update.
     }
 
     return (
@@ -198,21 +269,13 @@ function ProfileScreen() {
                     {/* Sidebar */}
                     <Sidebar
                         user={user}
-                        activeTab={activeTab}
                         menuItems={getMenuItems()}
                         onLogout={logout}
                     />
 
                     {/* Main content */}
-                    <main className="flex-1 p-6 md:p-8">
-                        {/* Success notification */}
-                        {showSuccess && (
-                            <div className="mb-6 bg-green-50 text-green-700 px-4 py-3 rounded-lg flex items-center">
-                                <Check size={20} className="mr-2" />
-                                Información actualizada correctamente
-                            </div>
-                        )}
-
+                    <main className="flex-1 p-6 md:p-8 relative">
+                        {" "}
                         {/* Tab content */}
                         {activeTab === "profile" && (
                             <ProfileTab
@@ -220,17 +283,21 @@ function ProfileScreen() {
                                 onUserUpdate={handleUserUpdate}
                             />
                         )}
-
                         {activeTab === "appointments" &&
                             user.role === "client" && (
                                 <AppointmentsTab
-                                    upcomingAppointments={upcomingAppointments}
-                                    pastAppointments={pastAppointments}
+                                    allAppointments={appointments}
+                                    isLoading={isLoadingAppointments}
+                                    error={fetchAppointmentsError}
                                     formatDate={formatDate}
-                                    onReschedule={handleReschedule}
+                                    onReschedule={handleRescheduleClick}
+                                    onAcceptSuggestion={handleAcceptSuggestion}
+                                    onDeclineSuggestion={
+                                        handleDeclineSuggestion
+                                    }
+                                    actionLoading={actionLoading}
                                 />
                             )}
-
                         {activeTab === "preferences" &&
                             user.role === "client" && <PreferencesTab />}
                     </main>
@@ -238,9 +305,9 @@ function ProfileScreen() {
             </div>
 
             {/* Reschedule modal */}
-            {showRescheduleModal && selectedAppointment && (
+            {showRescheduleModal && selectedAppointmentForReschedule && (
                 <RescheduleModal
-                    appointment={selectedAppointment}
+                    appointment={selectedAppointmentForReschedule}
                     onClose={() => setShowRescheduleModal(false)}
                     onSave={saveReschedule}
                     formatDate={formatDate}
