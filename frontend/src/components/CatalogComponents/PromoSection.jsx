@@ -1,6 +1,7 @@
 import React from "react"
 import { useNavigate } from "react-router-dom"
 import Button from "../../components/common/Button.jsx"
+
 /**
  * Componente para la sección promocional al final del catálogo
  */
