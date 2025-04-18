@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react"
-import { AlertTriangle, Clock, Loader2 } from "lucide-react"
+import {
+    AlertTriangle,
+    Calendar,
+    Clock,
+    ChevronLeft,
+    ChevronRight,
+    Loader2,
+} from "lucide-react"
 import { getAvailableSlotsForDay } from "../../features/availability/services/availabilityService"
 import { format } from "date-fns"
 import Button from "../common/Button.jsx"

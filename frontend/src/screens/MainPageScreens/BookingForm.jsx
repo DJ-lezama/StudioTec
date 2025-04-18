@@ -8,9 +8,6 @@ import {
     where,
 } from "firebase/firestore"
 import { db } from "../../../firebaseConfig"
-import catalogData, {
-    categoryConfig,
-} from "../../components/catalog/catalogData" // TODO: Replace with Firestore data
 import ProgressSteps from "../../components/booking/ProgressSteps"
 import ServiceSelectionStep from "../../components/booking/steps/ServiceSelectionStep"
 import StylistSelectionStep from "../../components/booking/steps/StylistSelectionStep"
@@ -23,31 +20,7 @@ import useAuth from "../../features/auth/hooks/useAuth.js"
 import { createAppointmentRequest } from "../../features/booking/services/bookingService.js"
 import { toast } from "react-toastify"
 import { AlertTriangle, Loader2 } from "lucide-react"
-
-// TODO: Replace these with Firestore calls eventually
-const findCategoryByServiceId = (serviceId) => {
-    for (const categoryKey in catalogData) {
-        if (
-            catalogData[categoryKey].some((service) => service.id === serviceId)
-        ) {
-            return categoryKey
-        }
-    }
-    return ""
-}
-
-const findServiceDetails = (serviceId) => {
-    for (const categoryKey in catalogData) {
-        const service = catalogData[categoryKey].find((s) => s.id === serviceId)
-        if (service) {
-            return {
-                ...service,
-                duration: parseInt(service.duration, 10),
-            }
-        }
-    }
-    return null
-}
+import { useServices } from "../../features/services/hooks/useServices.js"
 
 const initialFormData = {
     category: "",
@@ -75,7 +48,21 @@ function BookingForm() {
     const [isLoadingStylists, setIsLoadingStylists] = useState(true)
     const [fetchStylistsError, setFetchStylistsError] = useState(null)
 
-    const [selectedServiceDetails, setSelectedServiceDetails] = useState(null)
+    const {
+        services: allServices,
+        isLoading: isLoadingServices,
+        error: servicesError,
+    } = useServices()
+
+    const selectedServiceDetails = useMemo(() => {
+        if (!formData.serviceId || !allServices || allServices.length === 0) {
+            return null
+        }
+        const service = allServices.find(
+            (s) => s.serviceID === formData.serviceId,
+        )
+        return service || null
+    }, [formData.serviceId, allServices])
 
     useEffect(() => {
         const fetchStylists = async () => {
@@ -108,28 +95,20 @@ function BookingForm() {
 
     useEffect(() => {
         if (formData.serviceId) {
-            const details = findServiceDetails(formData.serviceId)
-            setSelectedServiceDetails(details)
             setFormData((prev) => ({ ...prev, time: "" }))
+
             if (
-                !details ||
-                typeof details.duration !== "number" ||
-                details.duration <= 0
+                !isLoadingServices &&
+                allServices.length > 0 &&
+                !allServices.some((s) => s.serviceID === formData.serviceId)
             ) {
                 console.warn(
-                    "Could not find valid duration for service:",
+                    "Selected serviceId not found in fetched services list:",
                     formData.serviceId,
-                    details,
-                )
-                toast.error(
-                    "Error: No se pudo determinar la duración del servicio seleccionado.",
                 )
             }
-        } else {
-            setSelectedServiceDetails(null)
-            setFormData((prev) => ({ ...prev, time: "" }))
         }
-    }, [formData.serviceId])
+    }, [formData.serviceId, isLoadingServices, allServices])
 
     useEffect(() => {
         if (formData.stylistId) {
@@ -143,26 +122,31 @@ function BookingForm() {
             prefillData?.serviceId &&
             prefillData?.stylistId &&
             !isLoadingStylists &&
-            stylistsList.length > 0
+            stylistsList.length > 0 &&
+            !isLoadingServices &&
+            allServices.length > 0
         ) {
-            const category = findCategoryByServiceId(prefillData.serviceId)
+            const service = allServices.find(
+                (s) => s.serviceID === prefillData.serviceId,
+            )
+            const categoryLabel = service?.category
             const stylistExists = stylistsList.some(
                 (s) => s.id === prefillData.stylistId,
             )
 
-            if (category && stylistExists) {
+            if (categoryLabel && stylistExists) {
                 console.log(
                     "Pre-filling form from location state:",
                     prefillData,
                 )
-                setFormData(() => ({
+                setFormData((prevData) => ({
                     ...initialFormData,
-                    category: category,
+                    category: categoryLabel,
                     serviceId: prefillData.serviceId,
                     stylistId: prefillData.stylistId,
-                    name: currentUser?.name || "",
-                    email: currentUser?.email || "",
-                    phone: currentUser?.phone || "",
+                    name: prevData.name || currentUser?.name || "",
+                    email: prevData.email || currentUser?.email || "",
+                    phone: prevData.phone || currentUser?.phone || "",
                 }))
                 setStep(3)
                 toast.info(
@@ -170,11 +154,8 @@ function BookingForm() {
                 )
             } else {
                 console.warn(
-                    "Could not pre-fill: category not found or stylist not available.",
-                    {
-                        category,
-                        stylistExists,
-                    },
+                    "Could not pre-fill: Service/category not found or stylist not available.",
+                    { categoryLabel, stylistExists, service },
                 )
                 setFormData((prevData) => ({
                     ...prevData,
@@ -187,9 +168,9 @@ function BookingForm() {
         } else if (!prefillData?.serviceId && currentUser && step === 1) {
             setFormData((prevData) => ({
                 ...prevData,
-                name: prevData.name || currentUser.name || "",
-                email: prevData.email || currentUser.email || "",
-                phone: prevData.phone || currentUser.phone || "",
+                name: prevData.name || currentUser?.name || "",
+                email: prevData.email || currentUser?.email || "",
+                phone: prevData.phone || currentUser?.phone || "",
             }))
         }
     }, [
@@ -199,6 +180,8 @@ function BookingForm() {
         navigate,
         isLoadingStylists,
         stylistsList,
+        isLoadingServices,
+        allServices,
         location.pathname,
     ])
 
@@ -226,7 +209,7 @@ function BookingForm() {
     }
 
     const selectedService = useMemo(
-        () => selectedServiceDetails?.title || "",
+        () => selectedServiceDetails?.name || "",
         [selectedServiceDetails],
     )
     const selectedStylist = useMemo(
@@ -277,12 +260,13 @@ function BookingForm() {
 
         const [year, month, day] = formData.date.split("-").map(Number)
         const [hours, minutes] = formData.time.split(":").map(Number)
-        const requestedDate = new Date(
-            Date.UTC(year, month - 1, day, hours, minutes),
-        )
+        const requestedDate = new Date(year, month - 1, day, hours, minutes)
 
         if (isNaN(requestedDate.getTime())) {
-            throw new Error("Fecha u hora inválida.")
+            setSubmitError("Fecha u hora seleccionada inválida.")
+            toast.error("Error: Fecha u hora inválida.")
+            setIsSubmitting(false)
+            return
         }
 
         try {
@@ -317,16 +301,20 @@ function BookingForm() {
                 },
                 replace: true,
             })
+
             setFormData(initialFormData)
-            setSelectedServiceDetails(null)
             setStep(1)
         } catch (error) {
             console.error("Booking submission error:", error)
             setSubmitError(
-                `Error al enviar la solicitud: ${error.message || "Inténtalo de nuevo."}`,
+                `Error al enviar la solicitud: ${
+                    error.message || "Inténtalo de nuevo."
+                }`,
             )
             toast.error(
-                `Error al enviar la solicitud: ${error.message || "Inténtalo de nuevo."}`,
+                `Error al enviar la solicitud: ${
+                    error.message || "Inténtalo de nuevo."
+                }`,
             )
         } finally {
             setIsSubmitting(false)
@@ -334,19 +322,29 @@ function BookingForm() {
     }
 
     const renderStepContent = () => {
-        if (step >= 2 && isLoadingStylists) {
+        const isLoading = isLoadingStylists || isLoadingServices
+        const fetchError = fetchStylistsError || servicesError?.message
+
+        if (isLoading && step >= 1) {
             return (
                 <div className="flex justify-center items-center p-10 text-gray-600">
                     <Loader2 className="w-6 h-6 text-secondary animate-spin mr-2" />
-                    <span>Cargando estilistas...</span>
+                    <span>
+                        {isLoadingServices
+                            ? "Cargando servicios..."
+                            : "Cargando estilistas..."}
+                    </span>
                 </div>
             )
         }
-        if (step >= 2 && fetchStylistsError) {
+
+        if (fetchError && step >= 1) {
             return (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-center flex items-center justify-center">
                     <AlertTriangle className="w-5 h-5 mr-2 flex-shrink-0" />
-                    <span>{fetchStylistsError}</span>
+                    <span>
+                        {fetchError || "Ocurrió un error al cargar los datos."}
+                    </span>
                 </div>
             )
         }
@@ -358,8 +356,6 @@ function BookingForm() {
                         formData={formData}
                         onFormUpdate={handleFormUpdate}
                         onNext={nextStep}
-                        categoryConfig={categoryConfig}
-                        catalogData={catalogData}
                     />
                 )
             case 2:
