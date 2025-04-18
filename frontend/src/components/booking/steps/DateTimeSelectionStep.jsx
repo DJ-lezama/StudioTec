@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react"
 import { AlertTriangle, Loader2 } from "lucide-react"
-import FormField from "../FormField"
+import DatePicker, { registerLocale } from "react-datepicker"
+import { es } from "date-fns/locale"
+import { format } from "date-fns"
+import "react-datepicker/dist/react-datepicker.css"
+
 import TimeSlotGrid from "../TimeSlotGrid"
 import Button from "../../../components/common/Button"
 import { getAvailableSlotsForDay } from "../../../features/availability/services/availabilityService"
+
+registerLocale("es", es)
 
 const DateTimeSelectionStep = ({
     formData,
@@ -17,12 +23,34 @@ const DateTimeSelectionStep = ({
     const [slotsError, setSlotsError] = useState(null)
     const [internalError, setInternalError] = useState(null)
 
+    const [selectedDateObject, setSelectedDateObject] = useState(null)
+
     const today = new Date()
-    const minDate = today.toISOString().split("T")[0]
+    today.setHours(0, 0, 0, 0)
+    const minDate = today
     const maxDate = new Date(today)
     // TODO: We might want to change this to a different time frame
     maxDate.setMonth(maxDate.getMonth() + 3) // Limit booking to 3 months ahead
-    const maxDateStr = maxDate.toISOString().split("T")[0]
+
+    useEffect(() => {
+        if (formData.date) {
+            try {
+                const [year, month, day] = formData.date.split("-").map(Number)
+                const dateObj = new Date(year, month - 1, day)
+                if (
+                    !selectedDateObject ||
+                    dateObj.getTime() !== selectedDateObject.getTime()
+                ) {
+                    setSelectedDateObject(dateObj)
+                }
+            } catch (e) {
+                console.error("Error parsing formData date:", e)
+                setSelectedDateObject(null)
+            }
+        } else {
+            setSelectedDateObject(null)
+        }
+    }, [formData.date, selectedDateObject])
 
     useEffect(() => {
         setSlots([])
@@ -30,7 +58,7 @@ const DateTimeSelectionStep = ({
         setSlotsError(null)
         setInternalError(null)
 
-        if (!formData.date) {
+        if (!selectedDateObject) {
             return
         }
         if (!formData.stylistId) {
@@ -53,22 +81,22 @@ const DateTimeSelectionStep = ({
             setSlotsError(null)
             setSlots([])
 
-            const dateParts = formData.date.split("-").map(Number)
-            const targetDate = new Date(
-                Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]),
-            )
-
-            if (isNaN(targetDate.getTime())) {
-                throw new Error("Fecha seleccionada inválida")
+            if (isNaN(selectedDateObject.getTime())) {
+                setInternalError("Fecha seleccionada inválida")
+                setIsLoadingSlots(false)
+                return
             }
+
             try {
                 console.log(
-                    `Fetching slots for stylist ${formData.stylistId} on ${targetDate.toISOString()} with duration ${serviceDuration} min`,
+                    `Fetching slots for stylist ${
+                        formData.stylistId
+                    } on ${selectedDateObject.toISOString()} with duration ${serviceDuration} min (using local time assumption)`,
                 )
 
                 const fetchedSlots = await getAvailableSlotsForDay(
                     formData.stylistId,
-                    targetDate,
+                    selectedDateObject,
                     serviceDuration,
                 )
 
@@ -82,7 +110,9 @@ const DateTimeSelectionStep = ({
             } catch (error) {
                 console.error("Error fetching slots:", error)
                 setSlotsError(
-                    `Error al cargar horarios: ${error.message || "Intenta de nuevo."}`,
+                    `Error al cargar horarios: ${
+                        error.message || "Intenta de nuevo."
+                    }`,
                 )
                 setSlots([])
             } finally {
@@ -91,16 +121,25 @@ const DateTimeSelectionStep = ({
         }
 
         fetchSlots().then((r) => r)
-    }, [formData.date, formData.stylistId, formData.serviceId, serviceDuration])
+    }, [
+        selectedDateObject,
+        formData.stylistId,
+        formData.serviceId,
+        serviceDuration,
+    ])
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target
+    const handleDateChange = (date) => {
+        setSelectedDateObject(date)
+
+        const dateString = date ? format(date, "yyyy-MM-dd") : ""
         const updatedData = {
             ...formData,
-            [name]: value,
-            ...(name === "date" && { time: "" }),
+            date: dateString,
+            time: "",
         }
         onFormUpdate(updatedData)
+        if (internalError) setInternalError(null)
+        if (slotsError) setSlotsError(null)
     }
 
     const handleTimeSelect = (time) => {
@@ -132,26 +171,36 @@ const DateTimeSelectionStep = ({
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Date Selection */}
-                <FormField
-                    label="Fecha"
-                    name="date"
-                    type="date"
-                    value={formData.date}
-                    onChange={handleInputChange}
-                    min={minDate}
-                    max={maxDateStr}
-                    required
-                    readOnly={!!internalError}
-                    className={
-                        internalError ? "opacity-50 cursor-not-allowed" : ""
-                    }
-                />
+                <div>
+                    <label className="block text-textMain font-medium mb-2">
+                        Fecha <span className="text-red-500">*</span>
+                    </label>
+                    <DatePicker
+                        selected={selectedDateObject}
+                        onChange={handleDateChange}
+                        locale="es"
+                        dateFormat="EEEE d 'de' MMMM, yyyy"
+                        minDate={minDate}
+                        maxDate={maxDate}
+                        placeholderText="Selecciona una fecha"
+                        className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                            internalError
+                                ? "bg-gray-100 text-gray-500 cursor-not-allowed focus:ring-0 border-gray-300"
+                                : "border-gray-300 focus:ring-secondary"
+                        }`}
+                        disabled={!!internalError}
+                        popperPlacement="bottom-start"
+                        required
+                        showMonthYearDropdown={true}
+                    />
+                </div>
 
                 {/* Time Selection Area */}
                 <div
                     className={
-                        !formData.date || !!internalError ? "opacity-50" : ""
+                        !selectedDateObject || !!internalError
+                            ? "opacity-50"
+                            : ""
                     }
                 >
                     <label className="block text-textMain font-medium mb-2">
@@ -159,6 +208,9 @@ const DateTimeSelectionStep = ({
                         {serviceDuration
                             ? `(Duración: ${serviceDuration} min)`
                             : ""}
+                        {formData.date && (
+                            <span className="text-red-500"> *</span>
+                        )}
                     </label>
 
                     {isLoadingSlots && (
@@ -168,7 +220,6 @@ const DateTimeSelectionStep = ({
                         </div>
                     )}
 
-                    {/* Display slot-specific errors */}
                     {slotsError && !isLoadingSlots && (
                         <div className="text-red-600 text-sm flex items-center bg-red-50 p-2 rounded border border-red-200">
                             <AlertTriangle className="w-4 h-4 mr-1 flex-shrink-0" />{" "}
@@ -176,20 +227,15 @@ const DateTimeSelectionStep = ({
                         </div>
                     )}
 
-                    {/* Display slots only if prerequisites met and no errors */}
                     {!isLoadingSlots &&
                         !slotsError &&
                         !internalError &&
-                        formData.date &&
+                        selectedDateObject &&
                         slots.length > 0 && (
                             <TimeSlotGrid
-                                times={
-                                    slots.length > 0
-                                        ? slots
-                                              .filter((s) => s.isAvailable)
-                                              .map((s) => s.time)
-                                        : []
-                                }
+                                times={slots
+                                    .filter((s) => s.isAvailable)
+                                    .map((s) => s.time)}
                                 selectedTime={formData.time}
                                 onSelectTime={handleTimeSelect}
                             />
@@ -197,7 +243,7 @@ const DateTimeSelectionStep = ({
                     {!isLoadingSlots &&
                         !slotsError &&
                         !internalError &&
-                        formData.date &&
+                        selectedDateObject &&
                         slots.length === 0 && (
                             <p className="text-sm text-gray-500 italic">
                                 No hay horarios disponibles para la fecha y
@@ -205,8 +251,7 @@ const DateTimeSelectionStep = ({
                             </p>
                         )}
 
-                    {/* Message when date is not selected */}
-                    {!formData.date && !internalError && (
+                    {!selectedDateObject && !internalError && (
                         <p className="text-sm text-gray-400 italic">
                             Selecciona una fecha para ver los horarios.
                         </p>
