@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { useLocation } from "react-router-dom"
 import { AlertTriangle, Eye, Hand, List, Loader2, Scissors } from "lucide-react"
 import ServiceCard from "../../components/catalog/ServiceCard.jsx"
@@ -7,8 +7,7 @@ import SearchBar from "../../components/catalog/SearchBar"
 import EmptyState from "../../components/catalog/EmptyState"
 import CategoryHeader from "../../components/catalog/CategoryHeader"
 import PromoSection from "../../components/catalog/PromoSection"
-import { collection, getDocs, orderBy, query, where } from "firebase/firestore"
-import { db } from "../../../firebaseConfig.js"
+import { useServices } from "../../features/services/hooks/useServices.js"
 
 const categoryConfig = {
     hair: { key: "hair", label: "Cabello", icon: Scissors },
@@ -22,57 +21,14 @@ const allCategoryOptions = [
 
 /**
  * Main element for the Catalog screen.
- * Fetches and displays active services from Firestore.
+ * Fetches and displays active services using the useServices hook.
  */
 function CatalogScreen() {
     const location = useLocation()
-    const [services, setServices] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
+    const { services: allServices, isLoading: loading, error } = useServices()
+
     const [selectedCategoryLabel, setSelectedCategoryLabel] = useState("Todos")
     const [searchQuery, setSearchQuery] = useState("")
-
-    useEffect(() => {
-        const fetchActiveServices = async () => {
-            setLoading(true)
-            setError(null)
-            setServices([])
-
-            try {
-                const servicesCollectionRef = collection(db, "services")
-                let q
-                const baseQueryConstraints = [
-                    where("isActive", "==", true),
-                    orderBy("name", "asc"),
-                ]
-
-                if (selectedCategoryLabel === "Todos") {
-                    q = query(servicesCollectionRef, ...baseQueryConstraints)
-                } else {
-                    q = query(
-                        servicesCollectionRef,
-                        where("category", "==", selectedCategoryLabel),
-                        ...baseQueryConstraints,
-                    )
-                }
-
-                const querySnapshot = await getDocs(q)
-                const servicesData = querySnapshot.docs.map((doc) => ({
-                    serviceID: doc.id,
-                    ...doc.data(),
-                }))
-                setServices(servicesData)
-            } catch (err) {
-                console.error("Error fetching active services:", err)
-                setError(
-                    "Error al cargar los servicios. Por favor, inténtalo de nuevo.",
-                )
-            } finally {
-                setLoading(false)
-            }
-        }
-        fetchActiveServices().then((r) => r)
-    }, [selectedCategoryLabel])
 
     useEffect(() => {
         const params = new URLSearchParams(location.search)
@@ -88,13 +44,27 @@ function CatalogScreen() {
         }
     }, [location.search])
 
-    const filteredServices = services.filter(
-        (service) =>
-            service.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            service.description
-                ?.toLowerCase()
-                .includes(searchQuery.toLowerCase()),
-    )
+    const filteredServices = useMemo(() => {
+        return allServices
+            .filter((service) => service.isActive === true)
+            .filter((service) => {
+                return (
+                    selectedCategoryLabel === "Todos" ||
+                    service.category === selectedCategoryLabel
+                )
+            })
+            .filter((service) => {
+                const nameMatch =
+                    service.name
+                        ?.toLowerCase()
+                        .includes(searchQuery.toLowerCase()) ?? false
+                const descriptionMatch =
+                    service.description
+                        ?.toLowerCase()
+                        .includes(searchQuery.toLowerCase()) ?? false
+                return nameMatch || descriptionMatch
+            })
+    }, [allServices, selectedCategoryLabel, searchQuery])
 
     return (
         <section className="pt-20 pb-20 px-6 sm:px-8 lg:px-16 bg-primaryLight min-h-screen">
@@ -155,7 +125,7 @@ function CatalogScreen() {
                 {error && !loading && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg text-center flex items-center justify-center">
                         <AlertTriangle className="w-5 h-5 mr-2" />
-                        <span>{error}</span>
+                        <span>{error.message}</span>
                     </div>
                 )}
 
@@ -176,7 +146,6 @@ function CatalogScreen() {
                             ))}
                         </div>
                     ) : (
-                        // Pass the actual search query to EmptyState
                         <EmptyState
                             category={selectedCategoryLabel}
                             searchQuery={searchQuery}

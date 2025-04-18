@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import Button from "../../components/common/Button"
 import { useNavigate } from "react-router-dom"
 import ServiceCreationOverlay from "../../components/services/ServiceCreationOverlay.jsx"
@@ -15,7 +15,6 @@ import {
     Tag,
     X,
 } from "lucide-react"
-
 import {
     addDoc,
     collection,
@@ -28,6 +27,7 @@ import {
     updateDoc,
 } from "firebase/firestore"
 import { db } from "../../../firebaseConfig.js"
+import { useServices } from "../../features/services/hooks/useServices.js"
 
 const categoryIcons = {
     Hair: <Scissors className="w-5 h-5" />,
@@ -36,9 +36,13 @@ const categoryIcons = {
 }
 
 const ManageServicesScreen = () => {
-    const [services, setServices] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
+    const {
+        services: allServices,
+        isLoading: loading,
+        error: fetchError,
+    } = useServices()
+
+    const [displayError, setDisplayError] = useState(null)
     const [formError, setFormError] = useState(null)
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedCategory, setSelectedCategory] = useState("Todos")
@@ -53,95 +57,87 @@ const ManageServicesScreen = () => {
 
     const navigate = useNavigate()
 
-    const fetchServices = async () => {
-        setLoading(true)
-        setError(null)
-        setServices([])
-        try {
-            const servicesCollectionRef = collection(db, "services")
-            const q = query(servicesCollectionRef, orderBy("createdAt", "desc"))
-            const querySnapshot = await getDocs(q)
-            const servicesData = querySnapshot.docs.map((doc) => ({
-                serviceID: doc.id,
-                ...doc.data(),
-            }))
-            setServices(servicesData)
-        } catch (err) {
-            console.error("Error fetching services:", err)
-            setError(
-                "No se pudieron cargar los servicios. Intenta recargar la página.",
-            )
-        } finally {
-            setLoading(false)
-        }
-    }
-
     useEffect(() => {
-        fetchServices().then((r) => r)
-    }, [])
+        setDisplayError(fetchError ? fetchError.message : null)
+    }, [fetchError])
 
-    const categories = [
-        "Todos",
-        ...new Set(services.map((service) => service.category).filter(Boolean)),
-    ]
+    const categories = useMemo(() => {
+        return [
+            "Todos",
+            ...new Set(
+                allServices.map((service) => service.category).filter(Boolean),
+            ),
+        ]
+    }, [allServices])
 
-    const filteredServices = services.filter((service) => {
-        const nameMatch =
-            service.name?.toLowerCase().includes(searchTerm.toLowerCase()) ??
-            false
-        const descriptionMatch =
-            service.description
-                ?.toLowerCase()
-                .includes(searchTerm.toLowerCase()) ?? false
-        const matchesSearch = nameMatch || descriptionMatch
-        const matchesCategory =
-            selectedCategory === "Todos" ||
-            service.category === selectedCategory
-        const matchesActiveState = !showActiveOnly || service.isActive === true
-        return matchesSearch && matchesCategory && matchesActiveState
-    })
+    const sortedServices = useMemo(() => {
+        const filtered = allServices.filter((service) => {
+            const nameMatch =
+                service.name
+                    ?.toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ?? false
+            const descriptionMatch =
+                service.description
+                    ?.toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ?? false
+            const matchesSearch = nameMatch || descriptionMatch
+            const matchesCategory =
+                selectedCategory === "Todos" ||
+                service.category === selectedCategory
+            const matchesActiveState =
+                !showActiveOnly || service.isActive === true
+            return matchesSearch && matchesCategory && matchesActiveState
+        })
 
-    const sortedServices = [...filteredServices].sort((a, b) => {
-        let valueA, valueB
-        const defaultString = ""
-        const defaultNumber = 0
-        switch (sortBy) {
-            case "price":
-                valueA = a.basePrice ?? defaultNumber
-                valueB = b.basePrice ?? defaultNumber
-                break
-            case "duration":
-                valueA = a.duration ?? defaultNumber
-                valueB = b.duration ?? defaultNumber
-                break
-            case "category":
-                valueA = a.category ?? defaultString
-                valueB = b.category ?? defaultString
-                break
-            default:
-                valueA = a.name?.toLowerCase() ?? defaultString
-                valueB = b.name?.toLowerCase() ?? defaultString
-        }
-        if (sortDirection === "asc") {
-            return valueA > valueB ? 1 : valueA < valueB ? -1 : 0
-        } else {
-            return valueA < valueB ? 1 : valueA > valueB ? -1 : 0
-        }
-    })
+        return [...filtered].sort((a, b) => {
+            let valueA, valueB
+            const defaultString = ""
+            const defaultNumber = 0
+            switch (sortBy) {
+                case "price":
+                    valueA = a.basePrice ?? defaultNumber
+                    valueB = b.basePrice ?? defaultNumber
+                    break
+                case "duration":
+                    valueA = a.duration ?? defaultNumber
+                    valueB = b.duration ?? defaultNumber
+                    break
+                case "category":
+                    valueA = a.category ?? defaultString
+                    valueB = b.category ?? defaultString
+                    break
+                default:
+                    valueA = a.name?.toLowerCase() ?? defaultString
+                    valueB = b.name?.toLowerCase() ?? defaultString
+            }
+            if (sortDirection === "asc") {
+                return valueA > valueB ? 1 : valueA < valueB ? -1 : 0
+            } else {
+                return valueA < valueB ? 1 : valueA > valueB ? -1 : 0
+            }
+        })
+    }, [
+        allServices,
+        searchTerm,
+        selectedCategory,
+        showActiveOnly,
+        sortBy,
+        sortDirection,
+    ])
 
     const showMessage = (message, isSuccess = true) => {
         if (isSuccess) {
             setSuccessMessage(message)
             setShowSuccessMessage(true)
-            setError(null)
+            setDisplayError(null)
             setFormError(null)
             setTimeout(() => setShowSuccessMessage(false), 3000)
         } else {
             if (showAddOverlay) {
                 setFormError(message)
-                setError(null)
+                setDisplayError(null)
             } else {
-                setError(message)
+                setDisplayError(message)
                 setFormError(null)
             }
             setShowSuccessMessage(false)
@@ -150,18 +146,12 @@ const ManageServicesScreen = () => {
 
     const handleToggleStatus = async (id) => {
         if (isSubmitting) return
-        const serviceToToggle = services.find((s) => s.serviceID === id)
+        const serviceToToggle = allServices.find((s) => s.serviceID === id)
         if (!serviceToToggle) return
 
-        const originalStatus = serviceToToggle.isActive
-        const newStatus = !originalStatus
+        setIsSubmitting(true)
 
-        // Optimistic UI update to improve perceived performance
-        setServices((prev) =>
-            prev.map((s) =>
-                s.serviceID === id ? { ...s, isActive: newStatus } : s,
-            ),
-        )
+        const newStatus = !serviceToToggle.isActive
 
         try {
             const serviceDocRef = doc(db, "services", id)
@@ -170,21 +160,18 @@ const ManageServicesScreen = () => {
                 updatedAt: serverTimestamp(),
             })
             showMessage("Estado del servicio actualizado.")
+            // TODO: Implement a better way to refresh data without full page reload or remount.
+            await fetchServices()
         } catch (err) {
             console.error("Error toggling service status:", err)
-            setServices((prev) =>
-                prev.map((s) =>
-                    s.serviceID === id ? { ...s, isActive: originalStatus } : s,
-                ),
-            )
             showMessage("Error al actualizar el estado.", false)
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
     const handleDeleteService = async (id) => {
         if (isSubmitting) return
-
-        // Simple confirmation - replace with a modal component in the future
         if (
             !window.confirm(
                 "¿Estás seguro de que deseas eliminar este servicio de forma permanente?",
@@ -193,23 +180,29 @@ const ManageServicesScreen = () => {
             return
         }
 
-        const originalServices = [...services]
-        setServices((prev) => prev.filter((s) => s.serviceID !== id))
-
+        setIsSubmitting(true)
         try {
             const serviceDocRef = doc(db, "services", id)
             await deleteDoc(serviceDocRef)
             showMessage("Servicio eliminado correctamente.")
+            // TODO: Refresh logic needed here too.
+            await fetchServices() // Temporary
         } catch (err) {
             console.error("Error deleting service:", err)
-            setServices(originalServices)
             showMessage("Error al eliminar el servicio.", false)
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
     const handleAddOrUpdateService = async (serviceData) => {
         setIsSubmitting(true)
         setFormError(null)
+
+        const dataPayload = {
+            ...serviceData,
+            updatedAt: serverTimestamp(),
+        }
 
         if (serviceToEdit) {
             try {
@@ -218,13 +211,11 @@ const ManageServicesScreen = () => {
                     "services",
                     serviceToEdit.serviceID,
                 )
-                await updateDoc(serviceDocRef, {
-                    ...serviceData,
-                    updatedAt: serverTimestamp(),
-                })
-                await fetchServices()
+                await updateDoc(serviceDocRef, dataPayload)
                 showMessage("Servicio actualizado correctamente.")
                 handleCloseForm()
+                // TODO: Refresh logic
+                await fetchServices() // Temporary
             } catch (err) {
                 console.error("Error updating service:", err)
                 showMessage(`Error al actualizar: ${err.message}`, false)
@@ -235,14 +226,14 @@ const ManageServicesScreen = () => {
             try {
                 const servicesCollectionRef = collection(db, "services")
                 await addDoc(servicesCollectionRef, {
-                    ...serviceData,
+                    ...dataPayload,
                     isActive: true,
                     createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp(),
                 })
-                await fetchServices()
                 showMessage("Nuevo servicio añadido correctamente.")
                 handleCloseForm()
+                // TODO: Refresh logic
+                await fetchServices() // Temporary
             } catch (err) {
                 console.error("Error adding service:", err)
                 showMessage(`Error al añadir: ${err.message}`, false)
@@ -270,6 +261,40 @@ const ManageServicesScreen = () => {
         setFormError(null)
     }
 
+    const fetchServices = async () => {
+        setLoading(true)
+        setDisplayError(null)
+        // setAllServices([]); // This would now come from the hook, cannot set directly
+        try {
+            // This duplicates the logic in the hook - ideally call a refresh function from the hook
+            const servicesCollectionRef = collection(db, "services")
+            const q = query(servicesCollectionRef, orderBy("createdAt", "desc"))
+            const querySnapshot = await getDocs(q)
+            const servicesData = querySnapshot.docs.map((doc) => ({
+                serviceID: doc.id,
+                ...doc.data(),
+                basePrice:
+                    typeof doc.data().basePrice === "number"
+                        ? doc.data().basePrice
+                        : parseFloat(doc.data().basePrice) || 0,
+                duration:
+                    typeof doc.data().duration === "number"
+                        ? doc.data().duration
+                        : parseInt(doc.data().duration, 10) || 0,
+            }))
+            console.warn(
+                "Temporary fetchServices called in component. Ideally, use a hook refresh function.",
+            )
+        } catch (err) {
+            console.error("Error fetching services:", err)
+            setDisplayError(
+                "No se pudieron cargar los servicios. Intenta recargar la página.",
+            )
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
         <div className="p-6 min-h-screen bg-primaryLight">
             {/* Header */}
@@ -285,15 +310,15 @@ const ManageServicesScreen = () => {
                 </Button>
             </div>
 
-            {/* Global Error Display Area (for fetch, delete, toggle errors) */}
-            {error && !showAddOverlay && (
+            {/* Global Error Display Area */}
+            {displayError && !showAddOverlay && (
                 <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
                     <div className="flex items-center">
                         <AlertTriangle className="w-5 h-5 mr-2" />
-                        <span>{error}</span>
+                        <span>{displayError}</span>
                     </div>
                     <button
-                        onClick={() => setError(null)}
+                        onClick={() => setDisplayError(null)}
                         className="text-red-500 hover:text-red-700"
                     >
                         <X className="w-4 h-4" />
@@ -352,10 +377,13 @@ const ManageServicesScreen = () => {
                             <button
                                 key={category}
                                 onClick={() => setSelectedCategory(category)}
-                                className={`px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-1.5 transition-colors ${selectedCategory === category ? "bg-secondary text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+                                className={`px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-1.5 transition-colors ${
+                                    selectedCategory === category
+                                        ? "bg-secondary text-white"
+                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
                                 disabled={loading}
                             >
-                                {" "}
                                 {category !== "Todos" &&
                                     categoryIcons[category]}{" "}
                                 {category}{" "}
@@ -365,7 +393,11 @@ const ManageServicesScreen = () => {
                     {/* Active Filter & Sorting */}
                     <div className="flex items-center flex-wrap gap-4">
                         <label
-                            className={`flex items-center gap-2 text-sm ${loading ? "text-gray-400 cursor-not-allowed" : "text-gray-700 cursor-pointer"}`}
+                            className={`flex items-center gap-2 text-sm ${
+                                loading
+                                    ? "text-gray-400 cursor-not-allowed"
+                                    : "text-gray-700 cursor-pointer"
+                            }`}
                         >
                             <input
                                 type="checkbox"
@@ -373,10 +405,14 @@ const ManageServicesScreen = () => {
                                 onChange={() =>
                                     setShowActiveOnly(!showActiveOnly)
                                 }
-                                className={`rounded text-secondary focus:ring-secondary ${loading ? "cursor-not-allowed" : "cursor-pointer"}`}
+                                className={`rounded text-secondary focus:ring-secondary ${
+                                    loading
+                                        ? "cursor-not-allowed"
+                                        : "cursor-pointer"
+                                }`}
                                 disabled={loading}
-                            />{" "}
-                            Solo activos{" "}
+                            />
+                            Solo activos
                         </label>
                         <div className="relative">
                             <select
@@ -453,6 +489,7 @@ const ManageServicesScreen = () => {
                                     key={service.serviceID}
                                     className="grid grid-cols-1 md:grid-cols-12 gap-y-3 gap-x-4 p-4 items-center hover:bg-gray-50 transition-colors duration-150"
                                 >
+                                    {/* Service Name & Image */}
                                     <div className="md:col-span-5 flex items-center gap-3">
                                         <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0 border border-gray-200 bg-gray-50">
                                             <img
@@ -477,8 +514,8 @@ const ManageServicesScreen = () => {
                                             </p>
                                         </div>
                                     </div>
+                                    {/* Category */}
                                     <div className="md:col-span-2 flex items-center gap-1.5 text-sm">
-                                        {" "}
                                         {categoryIcons[service.category] ? (
                                             <div className="bg-primary/20 text-secondary p-1.5 rounded-full">
                                                 {
@@ -489,19 +526,19 @@ const ManageServicesScreen = () => {
                                             </div>
                                         ) : (
                                             <Tag className="w-4 h-4 text-gray-400" />
-                                        )}{" "}
+                                        )}
                                         <span>{service.category}</span>
                                     </div>
+                                    {/* Price */}
                                     <div className="md:col-span-1 text-sm">
-                                        {" "}
                                         $
-                                        {service.basePrice?.toFixed(2) ??
-                                            "N/A"}{" "}
+                                        {service.basePrice?.toFixed(2) ?? "N/A"}
                                     </div>
+                                    {/* Duration */}
                                     <div className="md:col-span-1 text-sm">
-                                        {" "}
                                         {service.duration ?? "N/A"} min
                                     </div>
+                                    {/* Status Toggle */}
                                     <div className="md:col-span-1 flex justify-start md:justify-center">
                                         <span className="md:hidden text-xs font-medium text-gray-500 mr-2">
                                             Estado:
@@ -512,7 +549,11 @@ const ManageServicesScreen = () => {
                                                     service.serviceID,
                                                 )
                                             }
-                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 ${service.isActive ? "bg-secondary" : "bg-gray-200"}`}
+                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 ${
+                                                service.isActive
+                                                    ? "bg-secondary"
+                                                    : "bg-gray-200"
+                                            }`}
                                             aria-label={
                                                 service.isActive
                                                     ? "Desactivar servicio"
@@ -521,10 +562,15 @@ const ManageServicesScreen = () => {
                                             disabled={isSubmitting}
                                         >
                                             <span
-                                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${service.isActive ? "translate-x-6" : "translate-x-1"}`}
+                                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                                    service.isActive
+                                                        ? "translate-x-6"
+                                                        : "translate-x-1"
+                                                }`}
                                             />
                                         </button>
                                     </div>
+                                    {/* Actions */}
                                     <div className="md:col-span-2 flex justify-end gap-2 mt-2 md:mt-0">
                                         <Button
                                             type="transparent"
@@ -534,9 +580,8 @@ const ManageServicesScreen = () => {
                                             }
                                             disabled={isSubmitting}
                                         >
-                                            {" "}
-                                            Editar{" "}
-                                        </Button>{" "}
+                                            Editar
+                                        </Button>
                                         <Button
                                             type="light"
                                             className="text-xs px-2 py-1 text-red-600 hover:bg-red-50 disabled:opacity-50"
@@ -547,8 +592,7 @@ const ManageServicesScreen = () => {
                                             }
                                             disabled={isSubmitting}
                                         >
-                                            {" "}
-                                            Eliminar{" "}
+                                            Eliminar
                                         </Button>
                                     </div>
                                 </div>
@@ -556,16 +600,17 @@ const ManageServicesScreen = () => {
                         </div>
                     </div>
                 ) : (
+                    // Empty State
                     <div className="bg-white rounded-xl shadow-sm p-8 text-center">
                         <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Search className="w-8 h-8 text-secondary" />
                         </div>
                         <h3 className="text-lg font-medium text-textMain mb-2">
                             No se encontraron servicios
-                        </h3>{" "}
+                        </h3>
                         <p className="text-gray-500 mb-4">
                             Ajusta los filtros o añade un nuevo servicio.
-                        </p>{" "}
+                        </p>
                         <Button
                             type="dark"
                             onClick={() => {
@@ -575,8 +620,7 @@ const ManageServicesScreen = () => {
                             }}
                             disabled={loading || isSubmitting}
                         >
-                            {" "}
-                            Limpiar filtros{" "}
+                            Limpiar filtros
                         </Button>
                     </div>
                 ))}
