@@ -82,7 +82,7 @@ const TimeRangeInput = ({
                 type="time"
                 value={startTime}
                 onChange={(e) => handleTimeChange("start", e.target.value)}
-                className={`w-24 px-2 py-1 border rounded text-sm ${validationError ? "border-red-400" : "border-gray-300"}`}
+                className={`w-auto px-2 py-1 border rounded text-sm ${validationError ? "border-red-400" : "border-gray-300"}`}
             />
             <span className="text-gray-500">-</span>
             <input
@@ -90,7 +90,7 @@ const TimeRangeInput = ({
                 type="time"
                 value={endTime}
                 onChange={(e) => handleTimeChange("end", e.target.value)}
-                className={`w-24 px-2 py-1 border rounded text-sm ${validationError ? "border-red-400" : "border-gray-300"}`}
+                className={`w-auto px-2 py-1 border rounded text-sm ${validationError ? "border-red-400" : "border-gray-300"}`}
                 min={startTime}
             />
             <button
