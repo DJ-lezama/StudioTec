@@ -1,6 +1,7 @@
-import React, { useRef, useState } from "react"
+import React, { useCallback, useRef, useState } from "react"
 import { AlertCircle, Plus, Trash2 } from "lucide-react"
 import Button from "../../common/Button"
+import ConfirmationModal from "../../common/ConfirmationModal"
 import { isValidTime, parseInterval } from "../../../utils/timeUtils"
 
 const daysOfWeek = [
@@ -20,6 +21,7 @@ const TimeRangeInput = ({
     onRemoveInterval,
     onIntervalChange,
 }) => {
+    // TODO: Potentially handle duplicated code
     const { start, end, error: initialError } = parseInterval(interval)
     const [startTime, setStartTime] = useState(start)
     const [endTime, setEndTime] = useState(end)
@@ -85,7 +87,7 @@ const TimeRangeInput = ({
             />
             <button
                 type="button"
-                onClick={() => onRemoveInterval(dayKey, index)}
+                onClick={() => onRemoveInterval()}
                 className="text-red-500 hover:text-red-700 p-1"
                 aria-label={`Eliminar intervalo ${index + 1}`}
                 title="Eliminar intervalo"
@@ -98,57 +100,85 @@ const TimeRangeInput = ({
 
 const WorkingHoursEditor = ({ hours, onChange }) => {
     const lastActiveHoursRef = useRef({})
+    const [modalState, setModalState] = useState({
+        isOpen: false,
+        dayKey: null,
+        index: null,
+    })
 
-    const triggerChange = (dayKey, newIntervalsForDay) => {
-        const newState = { ...hours, [dayKey]: newIntervalsForDay }
-        onChange(newState)
-    }
+    const triggerChange = useCallback(
+        (dayKey, newIntervalsForDay) => {
+            const newState = { ...(hours || {}), [dayKey]: newIntervalsForDay }
+            onChange(newState)
+        },
+        [hours, onChange],
+    )
 
-    const handleToggleDay = (dayKey, isChecked) => {
-        const currentDayHours = hours[dayKey]
+    const handleToggleDay = useCallback(
+        (dayKey, isChecked) => {
+            const currentDayHours = (hours || {})[dayKey]
 
-        if (!isChecked) {
-            if (Array.isArray(currentDayHours)) {
-                lastActiveHoursRef.current[dayKey] = currentDayHours
+            if (!isChecked) {
+                if (Array.isArray(currentDayHours)) {
+                    lastActiveHoursRef.current[dayKey] = [...currentDayHours]
+                }
+                triggerChange(dayKey, null)
+            } else {
+                const previousHours = lastActiveHoursRef.current[dayKey]
+                const intervalsToSet =
+                    Array.isArray(previousHours) && previousHours.length > 0
+                        ? previousHours
+                        : ["09:00-17:00"]
+                triggerChange(dayKey, intervalsToSet)
             }
-            triggerChange(dayKey, null)
-        } else {
-            const previousHours = lastActiveHoursRef.current[dayKey]
-            const intervalsToSet =
-                Array.isArray(previousHours) && previousHours.length > 0
-                    ? previousHours
-                    : ["09:00-17:00"]
-            triggerChange(dayKey, intervalsToSet)
-        }
+        },
+        [hours, triggerChange],
+    )
+
+    const handleAddInterval = useCallback(
+        (dayKey) => {
+            const currentIntervals = (hours || {})[dayKey]
+            const baseIntervals = Array.isArray(currentIntervals)
+                ? currentIntervals
+                : []
+            const newIntervals = [...baseIntervals, "09:00-17:00"]
+            triggerChange(dayKey, newIntervals)
+        },
+        [hours, triggerChange],
+    )
+
+    const promptRemoveInterval = (dayKey, index) => {
+        setModalState({ isOpen: true, dayKey, index })
     }
 
-    const handleAddInterval = (dayKey) => {
-        const currentIntervals = hours[dayKey]
+    const confirmRemoveInterval = () => {
+        const { dayKey, index } = modalState
+        if (dayKey === null || index === null) return
+
+        const currentIntervals = (hours || {})[dayKey]
         if (!Array.isArray(currentIntervals)) return
 
-        const newIntervals = [...currentIntervals, "09:00-17:00"]
+        const newIntervals = currentIntervals.filter((_, i) => i !== index)
         triggerChange(dayKey, newIntervals)
+        handleCloseModal()
     }
 
-    const handleRemoveInterval = (dayKey, indexToRemove) => {
-        const currentIntervals = hours[dayKey]
-        if (!Array.isArray(currentIntervals)) return
-
-        const newIntervals = currentIntervals.filter(
-            (_, index) => index !== indexToRemove,
-        )
-        triggerChange(dayKey, newIntervals)
+    const handleCloseModal = () => {
+        setModalState({ isOpen: false, dayKey: null, index: null })
     }
 
-    const handleIntervalChange = (dayKey, indexToUpdate, newIntervalString) => {
-        const currentIntervals = hours[dayKey]
-        if (!Array.isArray(currentIntervals)) return
+    const handleIntervalChange = useCallback(
+        (dayKey, indexToUpdate, newIntervalString) => {
+            const currentIntervals = (hours || {})[dayKey]
+            if (!Array.isArray(currentIntervals)) return
 
-        const newIntervals = currentIntervals.map((interval, index) =>
-            index === indexToUpdate ? newIntervalString : interval,
-        )
-        triggerChange(dayKey, newIntervals)
-    }
+            const newIntervals = currentIntervals.map((interval, index) =>
+                index === indexToUpdate ? newIntervalString : interval,
+            )
+            triggerChange(dayKey, newIntervals)
+        },
+        [hours, triggerChange],
+    )
 
     const currentHours = hours || {}
 
@@ -161,10 +191,10 @@ const WorkingHoursEditor = ({ hours, onChange }) => {
                 return (
                     <div
                         key={day.key}
-                        className="flex flex-col sm:flex-row sm:items-center gap-4 p-3 border rounded-lg bg-white"
+                        className="flex flex-col sm:flex-row sm:items-start gap-4 p-3 border rounded-lg bg-white"
                     >
                         {/* Day Label and Toggle */}
-                        <div className="w-full sm:w-28 flex-shrink-0 flex items-center justify-between sm:justify-start">
+                        <div className="w-full sm:w-28 flex-shrink-0 flex items-center justify-between sm:justify-start pt-1.5">
                             <span className="font-medium text-textMain w-full">
                                 {day.label}
                             </span>
@@ -186,27 +216,34 @@ const WorkingHoursEditor = ({ hours, onChange }) => {
 
                         {/* Time Intervals Section */}
                         <div
-                            className={`flex-1 transition-opacity duration-300 ${isWorking ? "opacity-100" : "opacity-50 pointer-events-none"}`}
+                            className={`flex-1 transition-opacity duration-300 ${
+                                isWorking
+                                    ? "opacity-100"
+                                    : "opacity-50 pointer-events-none"
+                            }`}
                         >
                             {isWorking ? (
                                 Array.isArray(intervals) &&
                                 intervals.length > 0 ? (
                                     intervals.map((interval, index) => (
                                         <TimeRangeInput
-                                            key={`${day.key}-${index}-${interval}-${Date.now()}`}
+                                            key={`${day.key}-${index}`}
                                             dayKey={day.key}
                                             index={index}
                                             interval={interval || "09:00-17:00"}
                                             onIntervalChange={
                                                 handleIntervalChange
                                             }
-                                            onRemoveInterval={
-                                                handleRemoveInterval
+                                            onRemoveInterval={() =>
+                                                promptRemoveInterval(
+                                                    day.key,
+                                                    index,
+                                                )
                                             }
                                         />
                                     ))
                                 ) : (
-                                    <p className="text-sm text-gray-500 italic mb-2">
+                                    <p className="text-sm text-gray-500 italic mb-2 min-h-[38px] flex items-center">
                                         Día habilitado, pero sin horarios
                                         definidos. Añade un intervalo.
                                     </p>
@@ -232,6 +269,16 @@ const WorkingHoursEditor = ({ hours, onChange }) => {
                     </div>
                 )
             })}
+
+            <ConfirmationModal
+                isOpen={modalState.isOpen}
+                onClose={handleCloseModal}
+                onConfirm={confirmRemoveInterval}
+                title="Confirmar Eliminación"
+                message="¿Seguro que deseas eliminar este intervalo de horario?"
+                confirmText="Sí, eliminar"
+                confirmButtonType="danger"
+            />
         </div>
     )
 }

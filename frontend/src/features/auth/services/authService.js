@@ -8,6 +8,7 @@ import {
     getDoc,
     serverTimestamp,
     Timestamp,
+    updateDoc,
     writeBatch,
 } from "firebase/firestore"
 import { auth, db } from "../../../../firebaseConfig.js"
@@ -124,4 +125,32 @@ export const getUserData = async (user) => {
         return null
     }
     return { uid: user.uid, email: user.email, ...userDocSnap.data() }
+}
+
+/**
+ * Updates specific fields in a user's profile document in Firestore.
+ * @param {string} userId - The UID of the user to update.
+ * @param {object} dataToUpdate - An object containing the fields to update (e.g., { name, phone }).
+ * @returns {Promise<void>} A promise that resolves when the update is complete.
+ * @throws {Error} Throws an error if the Firestore operation fails.
+ */
+export const updateUserProfile = async (userId, dataToUpdate) => {
+    if (!userId || !dataToUpdate || Object.keys(dataToUpdate).length === 0) {
+        throw new Error("User ID and data to update are required.")
+    }
+
+    const userDocRef = doc(db, "users", userId)
+
+    try {
+        const updatePayload = {
+            ...dataToUpdate,
+            updatedAt: serverTimestamp(),
+        }
+
+        await updateDoc(userDocRef, updatePayload)
+        console.log(`User profile updated for user ${userId}:`, updatePayload)
+    } catch (error) {
+        console.error(`Error updating user profile for ${userId}:`, error)
+        throw new Error("Error al actualizar el perfil. Inténtalo de nuevo.")
+    }
 }

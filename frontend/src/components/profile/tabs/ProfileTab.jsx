@@ -1,13 +1,14 @@
 import React, { useState } from "react"
-import { Check, Edit3, X } from "lucide-react"
+import { Check, Edit3, Loader2, X } from "lucide-react"
 import Button from "../../../components/common/Button"
 import FormField from "../FormField"
 import InfoField from "../InfoField"
+import { updateUserProfile } from "../../../features/auth/services/authService"
+import { toast } from "react-toastify"
 
 const ProfileTab = ({ user, onUserUpdate }) => {
     const [isEditing, setIsEditing] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    const [showSuccess, setShowSuccess] = useState(false)
     const [form, setForm] = useState({
         name: user?.name || "",
         email: user?.email || "",
@@ -19,29 +20,48 @@ const ProfileTab = ({ user, onUserUpdate }) => {
         setForm((prev) => ({ ...prev, [name]: value }))
     }
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        if (!form.name.trim()) {
+            toast.warn("El nombre no puede estar vacío.")
+            return
+        }
+
         setIsLoading(true)
 
-        // TODO: Implement API call to save user data
-        // Simulate API call
-        setTimeout(() => {
-            const updatedUser = {
-                ...user,
-                name: form.name,
-                phone: form.phone,
+        try {
+            const dataToUpdate = {
+                name: form.name.trim(),
+                phone: form.phone.trim() || "",
             }
 
-            localStorage.setItem("studioTecUser", JSON.stringify(updatedUser))
-            onUserUpdate(updatedUser)
-            setIsLoading(false)
-            setIsEditing(false)
-            setShowSuccess(true)
+            await updateUserProfile(user.uid, dataToUpdate)
 
-            // Hide the success message after 3 seconds
-            setTimeout(() => {
-                setShowSuccess(false)
-            }, 3000)
-        }, 800)
+            const updatedUser = {
+                ...user,
+                ...dataToUpdate,
+            }
+
+            if (onUserUpdate) {
+                onUserUpdate(updatedUser)
+            }
+
+            setIsEditing(false)
+            toast.success("¡Perfil actualizado correctamente!")
+        } catch (error) {
+            console.error("Error saving profile:", error)
+            toast.error(`Error al guardar: ${error.message}`)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleCancel = () => {
+        setForm({
+            name: user?.name || "",
+            email: user?.email || "",
+            phone: user?.phone || "",
+        })
+        setIsEditing(false)
     }
 
     return (
@@ -62,19 +82,12 @@ const ProfileTab = ({ user, onUserUpdate }) => {
                 )}
             </div>
 
-            {showSuccess && (
-                <div className="mb-6 bg-green-50 text-green-700 px-4 py-3 rounded-lg flex items-center">
-                    <Check size={20} className="mr-2" />
-                    Información actualizada correctamente
-                </div>
-            )}
-
             {isEditing ? (
                 <form
                     className="space-y-5"
                     onSubmit={(e) => {
                         e.preventDefault()
-                        handleSave()
+                        handleSave().then((r) => r)
                     }}
                 >
                     <FormField
@@ -82,6 +95,7 @@ const ProfileTab = ({ user, onUserUpdate }) => {
                         name="name"
                         value={form.name}
                         onChange={handleChange}
+                        disabled={isLoading}
                     />
 
                     <FormField
@@ -100,37 +114,19 @@ const ProfileTab = ({ user, onUserUpdate }) => {
                         value={form.phone}
                         onChange={handleChange}
                         placeholder="Ej. 222 123 4567"
+                        disabled={isLoading}
                     />
 
                     <div className="flex gap-3 pt-4">
                         <Button
                             type="dark"
-                            onClick={handleSave}
-                            className="flex items-center"
+                            buttonType="submit"
+                            className="flex items-center justify-center min-w-[150px]" // Added centering and min-width
                             disabled={isLoading}
                         >
                             {isLoading ? (
                                 <>
-                                    <svg
-                                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                        ></circle>
-                                        <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                        ></path>
-                                    </svg>
+                                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" />
                                     Guardando...
                                 </>
                             ) : (
@@ -142,8 +138,9 @@ const ProfileTab = ({ user, onUserUpdate }) => {
                         </Button>
                         <Button
                             type="transparent"
-                            onClick={() => setIsEditing(false)}
+                            onClick={handleCancel}
                             className="flex items-center"
+                            disabled={isLoading}
                         >
                             <X size={16} className="mr-2" />
                             Cancelar
@@ -153,10 +150,13 @@ const ProfileTab = ({ user, onUserUpdate }) => {
             ) : (
                 <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="grid grid-cols-1 divide-y divide-gray-100">
-                        <InfoField label="Nombre completo" value={user.name} />
+                        <InfoField
+                            label="Nombre completo"
+                            value={user.name || "-"}
+                        />
                         <InfoField
                             label="Correo electrónico"
-                            value={user.email}
+                            value={user.email || "-"}
                         />
                         <InfoField
                             label="Teléfono"
