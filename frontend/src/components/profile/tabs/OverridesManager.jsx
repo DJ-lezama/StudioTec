@@ -3,23 +3,25 @@ import {
     AlertCircle,
     CalendarDays,
     Clock,
+    Edit,
     Plus,
     Save,
     Trash2,
     X,
 } from "lucide-react"
-import { format, formatISO, parseISO } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { es } from "date-fns/locale"
 import DatePicker, { registerLocale } from "react-datepicker"
 import { isValidTime, parseInterval } from "../../../utils/timeUtils"
 import Button from "../../common/Button"
+import ConfirmationModal from "../../common/ConfirmationModal"
 import { toast } from "react-toastify"
 
 registerLocale("es", es)
 
 const formatOverrideDate = (dateString) => {
     try {
-        const date = parseISO(dateString + "T00:00:00Z")
+        const date = parseISO(dateString)
         return format(date, "EEEE d 'de' MMMM, yyyy", { locale: es })
     } catch (e) {
         console.error("Error formatting override date:", dateString, e)
@@ -34,12 +36,13 @@ const TimeRangeInput = ({
     onIntervalChange,
     onRemoveInterval,
 }) => {
+    // TODO: Potentially handle the duplicate code
     const { start, end, error: initialError } = parseInterval(interval)
     const [startTime, setStartTime] = useState(start)
     const [endTime, setEndTime] = useState(end)
     const [validationError, setValidationError] = useState(initialError)
 
-    useEffect(() => {
+    React.useEffect(() => {
         const {
             start: newStart,
             end: newEnd,
@@ -82,7 +85,9 @@ const TimeRangeInput = ({
                 type="time"
                 value={startTime}
                 onChange={(e) => handleTimeChange("start", e.target.value)}
-                className={`w-auto px-2 py-1 border rounded text-sm ${validationError ? "border-red-400" : "border-gray-300"}`}
+                className={`w-auto px-2 py-1 border rounded text-sm ${
+                    validationError ? "border-red-400" : "border-gray-300"
+                }`}
             />
             <span className="text-gray-500">-</span>
             <input
@@ -90,7 +95,9 @@ const TimeRangeInput = ({
                 type="time"
                 value={endTime}
                 onChange={(e) => handleTimeChange("end", e.target.value)}
-                className={`w-auto px-2 py-1 border rounded text-sm ${validationError ? "border-red-400" : "border-gray-300"}`}
+                className={`w-auto px-2 py-1 border rounded text-sm ${
+                    validationError ? "border-red-400" : "border-gray-300"
+                }`}
                 min={startTime}
             />
             <button
@@ -107,9 +114,7 @@ const TimeRangeInput = ({
 
 const OverrideFormModal = ({ isOpen, onClose, onSave, initialData = null }) => {
     const [selectedDate, setSelectedDate] = useState(
-        initialData?.date
-            ? parseISO(initialData.date + "T00:00:00Z")
-            : new Date(),
+        initialData?.date ? parseISO(initialData.date) : new Date(),
     )
     const [overrideType, setOverrideType] = useState(
         initialData?.data?.type || "OFF",
@@ -126,11 +131,10 @@ const OverrideFormModal = ({ isOpen, onClose, onSave, initialData = null }) => {
 
     useEffect(() => {
         if (isOpen) {
-            setSelectedDate(
-                initialData?.date
-                    ? parseISO(initialData.date + "T00:00:00Z")
-                    : new Date(),
-            )
+            const initialDateObj = initialData?.date
+                ? parseISO(initialData.date)
+                : new Date()
+            setSelectedDate(initialDateObj)
             setOverrideType(initialData?.data?.type || "OFF")
             setDescription(initialData?.data?.description || "")
             setCustomHours(initialData?.data?.hours || ["09:00-17:00"])
@@ -160,7 +164,9 @@ const OverrideFormModal = ({ isOpen, onClose, onSave, initialData = null }) => {
 
     const validateForm = () => {
         const newErrors = {}
-        if (!selectedDate) newErrors.date = "Debes seleccionar una fecha."
+        if (!selectedDate || isNaN(selectedDate.getTime())) {
+            newErrors.date = "Debes seleccionar una fecha válida."
+        }
 
         if (overrideType === "CUSTOM_HOURS") {
             if (!customHours || customHours.length === 0) {
@@ -182,7 +188,6 @@ const OverrideFormModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                 }
             }
         }
-
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
     }
@@ -193,11 +198,9 @@ const OverrideFormModal = ({ isOpen, onClose, onSave, initialData = null }) => {
             return
         }
 
-        const dateString = formatISO(selectedDate, { representation: "date" })
+        const dateString = format(selectedDate, "yyyy-MM-dd")
 
-        const overrideData = {
-            type: overrideType,
-        }
+        const overrideData = { type: overrideType }
         if (overrideType === "OFF") {
             overrideData.description = description.trim()
         } else {
@@ -228,6 +231,7 @@ const OverrideFormModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                     </button>
                 </div>
 
+                {/* Form content */}
                 <div className="space-y-4 overflow-y-auto flex-1 pr-2 custom-scrollbar">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -238,7 +242,11 @@ const OverrideFormModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                             onChange={(date) => setSelectedDate(date)}
                             dateFormat="d 'de' MMMM, yyyy"
                             locale="es"
-                            className={`w-full p-2 border rounded-md ${errors.date ? "border-red-400" : "border-gray-300"}`}
+                            className={`w-full p-2 border rounded-md ${
+                                errors.date
+                                    ? "border-red-400"
+                                    : "border-gray-300"
+                            }`}
                             minDate={new Date()}
                             popperPlacement="bottom-start"
                             showMonthYearDropdown={true}
@@ -335,6 +343,7 @@ const OverrideFormModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                     )}
                 </div>
 
+                {/* Footer actions */}
                 <div className="flex justify-end gap-3 pt-4 border-t mt-4">
                     <Button type="light" onClick={onClose}>
                         Cancelar
@@ -344,7 +353,8 @@ const OverrideFormModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                         onClick={handleSaveClick}
                         className="flex items-center gap-1"
                     >
-                        <Save size={16} /> Guardar Excepción
+                        <Save size={16} />{" "}
+                        {isEditing ? "Guardar Cambios" : "Añadir Excepción"}
                     </Button>
                 </div>
             </div>
@@ -358,40 +368,30 @@ const OverridesManager = ({ initialOverrides, onChange }) => {
     )
     const [showModal, setShowModal] = useState(false)
     const [currentModalData, setCurrentModalData] = useState(null)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [overrideToDelete, setOverrideToDelete] = useState(null)
 
     useEffect(() => {
-        if (
-            JSON.stringify(initialOverrides) !== JSON.stringify(editedOverrides)
-        ) {
-            setEditedOverrides(initialOverrides || {})
-        }
-    }, [editedOverrides, initialOverrides])
+        setEditedOverrides(initialOverrides || {})
+    }, [initialOverrides])
 
     const sortedDates = useMemo(() => {
         return Object.keys(editedOverrides).sort((a, b) => a.localeCompare(b))
     }, [editedOverrides])
 
-    const handleDeleteOverride = useCallback(
-        (dateString) => {
-            if (
-                window.confirm(
-                    `¿Seguro que quieres eliminar la excepción para el ${formatOverrideDate(dateString)}?`,
-                )
-            ) {
-                setEditedOverrides((prevOverrides) => {
-                    const newOverrides = { ...prevOverrides }
-                    delete newOverrides[dateString]
-                    onChange(newOverrides)
-                    return newOverrides
-                })
-            }
-        },
-        [onChange],
-    )
-
     const handleOpenAddModal = () => {
         setCurrentModalData(null)
         setShowModal(true)
+    }
+
+    const handleOpenEditModal = (dateString) => {
+        const data = editedOverrides[dateString]
+        if (data) {
+            setCurrentModalData({ date: dateString, data })
+            setShowModal(true)
+        } else {
+            console.warn("Tried to edit non-existent override:", dateString)
+        }
     }
 
     const handleCloseModal = () => {
@@ -399,22 +399,46 @@ const OverridesManager = ({ initialOverrides, onChange }) => {
         setCurrentModalData(null)
     }
 
+    const handleOpenDeleteModal = (dateString) => {
+        setOverrideToDelete(dateString)
+        setShowDeleteModal(true)
+    }
+
+    const handleCloseDeleteModal = () => {
+        setShowDeleteModal(false)
+        setOverrideToDelete(null)
+    }
+
     const handleSaveOverride = useCallback(
         ({ dateString, data }) => {
             if (!dateString) return
 
-            setEditedOverrides((prevOverrides) => {
-                const newOverrides = {
-                    ...prevOverrides,
-                    [dateString]: data,
-                }
-                onChange(newOverrides)
-                return newOverrides
-            })
+            const newOverrides = {
+                ...editedOverrides,
+                [dateString]: data,
+            }
+            setEditedOverrides(newOverrides)
+            onChange(newOverrides)
             handleCloseModal()
+            toast.success(
+                currentModalData?.date
+                    ? "Excepción actualizada."
+                    : "Excepción añadida.",
+            )
         },
-        [onChange],
+        [editedOverrides, onChange, currentModalData],
     )
+
+    const confirmDeleteOverride = useCallback(() => {
+        if (!overrideToDelete) return
+
+        const newOverrides = { ...editedOverrides }
+        delete newOverrides[overrideToDelete]
+        setEditedOverrides(newOverrides)
+        onChange(newOverrides)
+        handleCloseDeleteModal()
+        toast.success("Excepción eliminada.")
+    }, [editedOverrides, onChange, overrideToDelete])
 
     return (
         <div className="space-y-3">
@@ -504,11 +528,23 @@ const OverridesManager = ({ initialOverrides, onChange }) => {
                                 </div>
                             </div>
 
+                            {/* Action Buttons */}
                             <div className="flex-shrink-0 flex items-center gap-1">
                                 <button
                                     type="button"
                                     onClick={() =>
-                                        handleDeleteOverride(dateString)
+                                        handleOpenEditModal(dateString)
+                                    }
+                                    className="text-gray-400 hover:text-blue-600 p-1 rounded hover:bg-blue-50 transition-colors"
+                                    title="Editar esta excepción"
+                                    aria-label={`Editar excepción del ${formatOverrideDate(dateString)}`}
+                                >
+                                    <Edit size={16} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        handleOpenDeleteModal(dateString)
                                     }
                                     className="text-gray-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors"
                                     title="Eliminar esta excepción"
@@ -522,11 +558,23 @@ const OverridesManager = ({ initialOverrides, onChange }) => {
                 })
             )}
 
+            {/* Add/Edit Modal */}
             <OverrideFormModal
                 isOpen={showModal}
                 onClose={handleCloseModal}
                 onSave={handleSaveOverride}
                 initialData={currentModalData}
+            />
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={handleCloseDeleteModal}
+                onConfirm={confirmDeleteOverride}
+                title="Confirmar Eliminación"
+                message={`¿Seguro que quieres eliminar la excepción para el ${formatOverrideDate(overrideToDelete)}? Esta acción no se puede deshacer.`}
+                confirmText="Sí, eliminar"
+                confirmButtonType="danger"
             />
         </div>
     )
