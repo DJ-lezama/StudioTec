@@ -1,7 +1,7 @@
-import React, { useMemo } from "react"
+import React, { useContext, useMemo } from "react"
 import SelectionCard from "../SelectionCard"
 import Button from "../../../components/common/Button"
-import { useServices } from "../../../features/services/hooks/useServices.js"
+import ServicesContext from "../../../features/services/context/ServicesContext"
 import { AlertTriangle, Eye, Hand, Loader2, Scissors } from "lucide-react"
 
 const categoryConfig = {
@@ -15,7 +15,7 @@ const ServiceSelectionStep = ({ formData, onFormUpdate, onNext }) => {
         services: allServices,
         isLoading: isLoadingServices,
         error: servicesError,
-    } = useServices()
+    } = useContext(ServicesContext)
 
     const servicesGroupedByCategory = useMemo(() => {
         if (isLoadingServices || servicesError || !allServices) {

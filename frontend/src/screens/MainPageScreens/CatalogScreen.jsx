@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useContext, useEffect, useMemo, useState } from "react"
 import { useLocation } from "react-router-dom"
 import { AlertTriangle, Eye, Hand, List, Loader2, Scissors } from "lucide-react"
 import ServiceCard from "../../components/catalog/ServiceCard.jsx"
@@ -7,7 +7,7 @@ import SearchBar from "../../components/catalog/SearchBar"
 import EmptyState from "../../components/catalog/EmptyState"
 import CategoryHeader from "../../components/catalog/CategoryHeader"
 import PromoSection from "../../components/catalog/PromoSection"
-import { useServices } from "../../features/services/hooks/useServices.js"
+import ServicesContext from "../../features/services/context/ServicesContext"
 
 const categoryConfig = {
     hair: { key: "hair", label: "Cabello", icon: Scissors },
@@ -25,7 +25,11 @@ const allCategoryOptions = [
  */
 function CatalogScreen() {
     const location = useLocation()
-    const { services: allServices, isLoading: loading, error } = useServices()
+    const {
+        services: allServices,
+        isLoading: loading,
+        error,
+    } = useContext(ServicesContext)
 
     const [selectedCategoryLabel, setSelectedCategoryLabel] = useState("Todos")
     const [searchQuery, setSearchQuery] = useState("")
