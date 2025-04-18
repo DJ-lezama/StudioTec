@@ -4,11 +4,15 @@ import {
     signOut,
 } from "firebase/auth"
 import {
+    collection,
     doc,
+    getCountFromServer,
     getDoc,
+    query,
     serverTimestamp,
     Timestamp,
     updateDoc,
+    where,
     writeBatch,
 } from "firebase/firestore"
 import { auth, db } from "../../../../firebaseConfig.js"
@@ -152,5 +156,24 @@ export const updateUserProfile = async (userId, dataToUpdate) => {
     } catch (error) {
         console.error(`Error updating user profile for ${userId}:`, error)
         throw new Error("Error al actualizar el perfil. Inténtalo de nuevo.")
+    }
+}
+
+/**
+ * Gets the count of client users from Firestore.
+ * @returns {Promise<number>} A promise that resolves with the number of client users.
+ * @throws {Error} Throws an error if the Firestore operation fails.
+ */
+export const getClientCount = async () => {
+    try {
+        const usersCollectionRef = collection(db, "users")
+        const q = query(usersCollectionRef, where("role", "==", "client"))
+        const snapshot = await getCountFromServer(q) // Efficient count query
+        const count = snapshot.data().count
+        console.log("Client count:", count)
+        return count
+    } catch (error) {
+        console.error("Error getting client count:", error)
+        throw new Error("Error al obtener el número de clientes.")
     }
 }
