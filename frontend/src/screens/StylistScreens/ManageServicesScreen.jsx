@@ -556,7 +556,7 @@ const ManageServicesScreen = () => {
                         </div>
                     </div>
                 ) : (
-                    /* Empty State */ <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+                    <div className="bg-white rounded-xl shadow-sm p-8 text-center">
                         <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Search className="w-8 h-8 text-secondary" />
                         </div>
