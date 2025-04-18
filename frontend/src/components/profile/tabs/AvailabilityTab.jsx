@@ -1,7 +1,6 @@
-// src/components/profile/tabs/AvailabilityTab.jsx
 import React, { useCallback, useEffect, useState } from "react"
 import { doc, getDoc, Timestamp, updateDoc } from "firebase/firestore"
-import { db } from "../../../../firebaseConfig" // Adjust path if needed
+import { db } from "../../../../firebaseConfig"
 import {
     AlertTriangle,
     CalendarDays,
@@ -10,31 +9,25 @@ import {
     Save,
     Settings,
 } from "lucide-react"
-import Button from "../../common/Button" // Adjust path if needed
+import Button from "../../common/Button"
 import { toast } from "react-toastify"
-
-// Import the child components
-import WorkingHoursEditor from "./WorkingHoursEditor" // Adjust path if needed
-import OverridesManager from "./OverridesManager" // Adjust path if needed
-// Import utility functions
-import { isValidTime, parseInterval } from "../../../utils/timeUtils" // Adjust path if needed
+import WorkingHoursEditor from "./WorkingHoursEditor"
+import OverridesManager from "./OverridesManager"
+import { isValidTime, parseInterval } from "../../../utils/timeUtils"
 
 const AvailabilityTab = ({ stylistId }) => {
-    const [profileData, setProfileData] = useState(null) // Holds the last known saved state
+    const [, setProfileData] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState(null)
     const [isSaving, setIsSaving] = useState(false)
-
-    // Holds the data currently being edited in the UI
     const [editableData, setEditableData] = useState(null)
 
-    // Fetch profile data on initial load or when stylistId changes
     useEffect(() => {
         if (!stylistId) {
             setError("ID de estilista no proporcionado.")
             setIsLoading(false)
-            setProfileData(null) // Clear previous data
-            setEditableData(null) // Clear editable data
+            setProfileData(null)
+            setEditableData(null)
             return
         }
 
@@ -42,14 +35,13 @@ const AvailabilityTab = ({ stylistId }) => {
             setIsLoading(true)
             setError(null)
             setProfileData(null)
-            setEditableData(null) // Clear editable data while loading
+            setEditableData(null)
             const docRef = doc(db, "stylist_profiles", stylistId)
             try {
                 const docSnap = await getDoc(docRef)
                 if (docSnap.exists()) {
                     const data = docSnap.data()
-                    setProfileData(data) // Store the fetched data
-                    // Initialize editableData with a deep copy AFTER data is fetched
+                    setProfileData(data)
                     setEditableData({
                         workingHours: JSON.parse(
                             JSON.stringify(data.workingHours || {}),
@@ -58,7 +50,7 @@ const AvailabilityTab = ({ stylistId }) => {
                             JSON.stringify(data.availabilityOverrides || {}),
                         ),
                         timeZone: data.timeZone || "",
-                        bufferTime: data.bufferTime ?? 0, // Use nullish coalescing for 0 value
+                        bufferTime: data.bufferTime ?? 0,
                     })
                 } else {
                     setError(
@@ -79,9 +71,8 @@ const AvailabilityTab = ({ stylistId }) => {
         }
 
         fetchProfile().then((r) => r)
-    }, [setProfileData, stylistId])
+    }, [stylistId])
 
-    // Callback for WorkingHoursEditor changes
     const handleWorkingHoursChange = useCallback((newHours) => {
         setEditableData((prev) => {
             if (!prev) return null
@@ -89,7 +80,6 @@ const AvailabilityTab = ({ stylistId }) => {
         })
     }, [])
 
-    // Callback for OverridesManager changes
     const handleOverridesChange = useCallback((newOverrides) => {
         setEditableData((prev) => {
             if (!prev) return null
@@ -97,7 +87,6 @@ const AvailabilityTab = ({ stylistId }) => {
         })
     }, [])
 
-    // Handler for general settings inputs (TimeZone, BufferTime)
     const handleSettingsChange = (e) => {
         const { name, value } = e.target
         setEditableData((prev) => {
@@ -107,12 +96,11 @@ const AvailabilityTab = ({ stylistId }) => {
                     ? value === ""
                         ? 0
                         : Number(value)
-                    : value // Ensure bufferTime is number or 0
+                    : value
             return { ...prev, [name]: processedValue }
         })
     }
 
-    // Save Changes to Firestore
     const handleSaveChanges = async () => {
         if (!stylistId || !editableData) {
             toast.error(
@@ -121,18 +109,14 @@ const AvailabilityTab = ({ stylistId }) => {
             return
         }
 
-        // --- Validation before Saving ---
         let isValid = true
         let hasTimeErrors = false
 
-        // Validate working hours format and logic
         if (editableData.workingHours) {
             Object.entries(editableData.workingHours).forEach(
                 ([day, intervals]) => {
                     if (Array.isArray(intervals)) {
                         if (intervals.length === 0) {
-                            // Decide if an empty array is valid (means working but no slots?) or invalid
-                            // For now, let's consider it potentially valid but log a warning
                             console.warn(
                                 `WorkingHours for ${day} is an empty array.`,
                             )
@@ -158,13 +142,12 @@ const AvailabilityTab = ({ stylistId }) => {
                             }
                         })
                     } else if (intervals !== null) {
-                        // If not an array and not null, it's an invalid format
                         isValid = false
                         console.error(
                             `Invalid data type for working hours on ${day}:`,
                             intervals,
                         )
-                        hasTimeErrors = true // Treat as a time error for messaging
+                        hasTimeErrors = true
                     }
                 },
             )
@@ -186,7 +169,6 @@ const AvailabilityTab = ({ stylistId }) => {
                 "El Tiempo de Descanso debe ser un número entero positivo o cero.",
             )
         }
-        // --- End Validation ---
 
         if (!isValid) {
             if (hasTimeErrors) {
@@ -198,7 +180,7 @@ const AvailabilityTab = ({ stylistId }) => {
                     "Hay errores en la configuración. Por favor, revisa los campos marcados.",
                 )
             }
-            return // Don't save if validation fails
+            return
         }
 
         setIsSaving(true)
@@ -207,23 +189,19 @@ const AvailabilityTab = ({ stylistId }) => {
             const dataToSave = {
                 workingHours: editableData.workingHours,
                 availabilityOverrides: editableData.availabilityOverrides,
-                timeZone: editableData.timeZone.trim(), // Trim timezone before saving
-                bufferTime: editableData.bufferTime, // Already validated as number
-                updatedAt: Timestamp.now(), // Use client-side timestamp for simplicity here
+                timeZone: editableData.timeZone.trim(),
+                bufferTime: editableData.bufferTime,
+                updatedAt: Timestamp.now(),
             }
 
             console.log("Saving availability data:", dataToSave)
             await updateDoc(docRef, dataToSave)
 
-            // Update the 'read-only' profileData state to reflect saved changes
             setProfileData((prev) => ({
                 ...prev,
-                ...dataToSave, // Merge saved data
-                updatedAt: new Date(), // Update local timestamp display immediately
+                ...dataToSave,
+                updatedAt: new Date(),
             }))
-            // Optionally reset editableData to match saved data if needed,
-            // though keeping the current edited state might be fine too.
-            // setEditableData({...dataToSave});
 
             toast.success("Disponibilidad actualizada correctamente.")
         } catch (err) {
@@ -234,7 +212,6 @@ const AvailabilityTab = ({ stylistId }) => {
         }
     }
 
-    // --- Render Logic ---
     if (isLoading) {
         return (
             <div className="flex justify-center items-center p-10 text-gray-600">
@@ -253,7 +230,6 @@ const AvailabilityTab = ({ stylistId }) => {
         )
     }
 
-    // Show message if data hasn't loaded into editableData yet (e.g., profile existed but had no data initially)
     if (!editableData) {
         return (
             <div className="text-center p-6 text-gray-500">
@@ -266,27 +242,23 @@ const AvailabilityTab = ({ stylistId }) => {
         )
     }
 
-    // --- Main Render ---
     return (
         <div className="space-y-8">
             <h3 className="text-h4 font-heading font-semibold text-textMain mb-6">
                 Gestionar Mi Horario y Disponibilidad
             </h3>
 
-            {/* Section 1: Default Weekly Schedule */}
             <div className="p-4 sm:p-6 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
                 <h4 className="text-subtitle-m font-medium text-textMain mb-4 flex items-center">
                     <Clock size={18} className="mr-2 text-secondary" /> Horario
                     Semanal Predeterminado
                 </h4>
-                {/* Render the WorkingHoursEditor component */}
                 <WorkingHoursEditor
-                    initialHours={editableData.workingHours}
+                    hours={editableData.workingHours}
                     onChange={handleWorkingHoursChange}
                 />
             </div>
 
-            {/* Section 2: Specific Date Overrides */}
             <div className="p-4 sm:p-6 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
                 <h4 className="text-subtitle-m font-medium text-textMain mb-4 flex items-center justify-between">
                     <span>
@@ -303,14 +275,12 @@ const AvailabilityTab = ({ stylistId }) => {
                 />
             </div>
 
-            {/* Section 3: Settings */}
             <div className="p-4 sm:p-6 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
                 <h4 className="text-subtitle-m font-medium text-textMain mb-4 flex items-center">
                     <Settings size={18} className="mr-2 text-secondary" />{" "}
                     Configuración Adicional
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* TimeZone Input */}
                     <div>
                         <label
                             htmlFor="timeZone"
@@ -340,7 +310,6 @@ const AvailabilityTab = ({ stylistId }) => {
                             </a>
                         </p>
                     </div>
-                    {/* Buffer Time Input */}
                     <div>
                         <label
                             htmlFor="bufferTime"
@@ -352,10 +321,10 @@ const AvailabilityTab = ({ stylistId }) => {
                             type="number"
                             id="bufferTime"
                             name="bufferTime"
-                            value={editableData.bufferTime ?? 0} // Ensure value is controlled
+                            value={editableData.bufferTime ?? 0}
                             onChange={handleSettingsChange}
                             min="0"
-                            step="5" // Suggest steps of 5 minutes
+                            step="5"
                             className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-primary focus:border-primary disabled:bg-gray-100"
                             disabled={isSaving}
                         />
@@ -367,14 +336,12 @@ const AvailabilityTab = ({ stylistId }) => {
                 </div>
             </div>
 
-            {/* Save Button Area */}
             <div className="flex justify-end mt-6 border-t pt-6 border-gray-200">
                 <Button
                     type="dark"
                     onClick={handleSaveChanges}
-                    // Disable button if loading, saving, or editable data isn't ready
                     disabled={isLoading || isSaving || !editableData}
-                    className="flex items-center min-w-[150px] justify-center" // Ensure button has min width for consistent look
+                    className="flex items-center min-w-[150px] justify-center"
                     aria-label="Guardar cambios de disponibilidad"
                 >
                     {isSaving ? (

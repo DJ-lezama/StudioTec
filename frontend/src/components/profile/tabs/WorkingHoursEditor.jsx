@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useRef, useState } from "react"
 import { AlertCircle, Plus, Trash2 } from "lucide-react"
 import Button from "../../common/Button"
 import { isValidTime, parseInterval } from "../../../utils/timeUtils"
@@ -17,15 +17,15 @@ const TimeRangeInput = ({
     dayKey,
     index,
     interval,
-    onIntervalChange,
     onRemoveInterval,
+    onIntervalChange,
 }) => {
     const { start, end, error: initialError } = parseInterval(interval)
     const [startTime, setStartTime] = useState(start)
     const [endTime, setEndTime] = useState(end)
     const [validationError, setValidationError] = useState(initialError)
 
-    useEffect(() => {
+    React.useEffect(() => {
         const {
             start: newStart,
             end: newEnd,
@@ -48,22 +48,10 @@ const TimeRangeInput = ({
         }
 
         setValidationError(error)
+        if (type === "start") setStartTime(value)
+        else setEndTime(value)
 
-        if (type === "start") {
-            setStartTime(value)
-        } else {
-            setEndTime(value)
-        }
-        if (!error) {
-            onIntervalChange(dayKey, index, `${currentStart}-${currentEnd}`)
-        } else {
-            onIntervalChange(
-                dayKey,
-                index,
-                `${currentStart}-${currentEnd}`,
-                error,
-            )
-        }
+        onIntervalChange(dayKey, index, `${currentStart}-${currentEnd}`, error)
     }
 
     return (
@@ -79,7 +67,9 @@ const TimeRangeInput = ({
                 type="time"
                 value={startTime}
                 onChange={(e) => handleTimeChange("start", e.target.value)}
-                className={`w-24 px-2 py-1 border rounded text-sm ${validationError ? "border-red-400" : "border-gray-300"} focus:ring-1 focus:ring-primary focus:border-primary`}
+                className={`w-auto px-2 py-1 border rounded text-sm ${
+                    validationError ? "border-red-400" : "border-gray-300"
+                } focus:ring-1 focus:ring-primary focus:border-primary`}
                 aria-label={`Hora de inicio para intervalo ${index + 1}`}
             />
             <span className="text-gray-500">-</span>
@@ -87,7 +77,9 @@ const TimeRangeInput = ({
                 type="time"
                 value={endTime}
                 onChange={(e) => handleTimeChange("end", e.target.value)}
-                className={`w-24 px-2 py-1 border rounded text-sm ${validationError ? "border-red-400" : "border-gray-300"} focus:ring-1 focus:ring-primary focus:border-primary`}
+                className={`w-auto px-2 py-1 border rounded text-sm ${
+                    validationError ? "border-red-400" : "border-gray-300"
+                } focus:ring-1 focus:ring-primary focus:border-primary`}
                 aria-label={`Hora de fin para intervalo ${index + 1}`}
                 min={startTime}
             />
@@ -104,130 +96,79 @@ const TimeRangeInput = ({
     )
 }
 
-const WorkingHoursEditor = ({ initialHours, onChange }) => {
-    const [editedHours, setEditedHours] = useState(() => {
-        const initialised = {}
-        daysOfWeek.forEach((day) => {
-            initialised[day.key] =
-                initialHours?.[day.key] === undefined
-                    ? null
-                    : initialHours[day.key]
-            if (
-                initialised[day.key] !== null &&
-                !Array.isArray(initialised[day.key])
-            ) {
-                console.warn(
-                    `Invalid initial interval for ${day.key}, setting to null.`,
-                )
-                initialised[day.key] = null
-            }
-        })
-        return initialised
-    })
+const WorkingHoursEditor = ({ hours, onChange }) => {
+    const lastActiveHoursRef = useRef({})
 
-    useEffect(() => {
-        if (JSON.stringify(initialHours) !== JSON.stringify(editedHours)) {
-            const initialised = {}
-            daysOfWeek.forEach((day) => {
-                initialised[day.key] =
-                    initialHours?.[day.key] === undefined
-                        ? null
-                        : initialHours[day.key]
-                if (
-                    initialised[day.key] !== null &&
-                    !Array.isArray(initialised[day.key])
-                ) {
-                    initialised[day.key] = null
-                }
-            })
-            setEditedHours(initialised)
-            console.log("Synced internal state with initialHours prop change.")
-        }
-    }, [editedHours, initialHours])
-
-    const handleHoursChange = useCallback(
-        (dayKey, newIntervals) => {
-            const newState = { ...editedHours, [dayKey]: newIntervals }
-            setEditedHours(newState)
-            onChange(newState)
-        },
-        [editedHours, onChange],
-    )
+    const triggerChange = (dayKey, newIntervalsForDay) => {
+        const newState = { ...hours, [dayKey]: newIntervalsForDay }
+        onChange(newState)
+    }
 
     const handleToggleDay = (dayKey, isChecked) => {
-        const currentIntervals = editedHours[dayKey]
-        const newIntervals = isChecked
-            ? Array.isArray(currentIntervals) && currentIntervals.length > 0
-                ? currentIntervals
-                : ["09:00-17:00"]
-            : null
-        handleHoursChange(dayKey, newIntervals)
+        const currentDayHours = hours[dayKey]
+
+        if (!isChecked) {
+            if (Array.isArray(currentDayHours)) {
+                lastActiveHoursRef.current[dayKey] = currentDayHours
+            }
+            triggerChange(dayKey, null)
+        } else {
+            const previousHours = lastActiveHoursRef.current[dayKey]
+            const intervalsToSet =
+                Array.isArray(previousHours) && previousHours.length > 0
+                    ? previousHours
+                    : ["09:00-17:00"]
+            triggerChange(dayKey, intervalsToSet)
+        }
     }
 
     const handleAddInterval = (dayKey) => {
-        const currentIntervals = editedHours[dayKey]
+        const currentIntervals = hours[dayKey]
         if (!Array.isArray(currentIntervals)) return
 
         const newIntervals = [...currentIntervals, "09:00-17:00"]
-        handleHoursChange(dayKey, newIntervals)
+        triggerChange(dayKey, newIntervals)
     }
 
     const handleRemoveInterval = (dayKey, indexToRemove) => {
-        const currentIntervals = editedHours[dayKey]
+        const currentIntervals = hours[dayKey]
         if (!Array.isArray(currentIntervals)) return
 
         const newIntervals = currentIntervals.filter(
             (_, index) => index !== indexToRemove,
         )
-        handleHoursChange(dayKey, newIntervals.length > 0 ? newIntervals : [])
+        triggerChange(dayKey, newIntervals)
     }
 
     const handleIntervalChange = (dayKey, indexToUpdate, newIntervalString) => {
-        const currentIntervals = editedHours[dayKey]
+        const currentIntervals = hours[dayKey]
         if (!Array.isArray(currentIntervals)) return
 
         const newIntervals = currentIntervals.map((interval, index) =>
             index === indexToUpdate ? newIntervalString : interval,
         )
-
-        const dayHasErrors = newIntervals.some((intStr) => {
-            const { start, end, error: parseError } = parseInterval(intStr)
-            return (
-                !!parseError ||
-                !isValidTime(start) ||
-                !isValidTime(end) ||
-                end <= start
-            )
-        })
-
-        setEditedHours((prev) => ({ ...prev, [dayKey]: newIntervals }))
-
-        if (!dayHasErrors) {
-            onChange({ ...editedHours, [dayKey]: newIntervals })
-        } else {
-            console.log(
-                `Day ${dayKey} has validation errors, not propagating onChange.`,
-            )
-        }
+        triggerChange(dayKey, newIntervals)
     }
+
+    const currentHours = hours || {}
 
     return (
         <div className="space-y-4">
             {daysOfWeek.map((day) => {
-                const intervals = editedHours[day.key]
-                const isWorking = intervals !== null
+                const intervals = currentHours[day.key]
+                const isWorking = intervals !== null && intervals !== undefined
 
                 return (
                     <div
                         key={day.key}
-                        className="flex flex-col sm:flex-row sm:items-start gap-4 p-3 border rounded-lg bg-white"
+                        className="flex flex-col sm:flex-row sm:items-center gap-4 p-3 border rounded-lg bg-white"
                     >
                         {/* Day Label and Toggle */}
                         <div className="w-full sm:w-28 flex-shrink-0 flex items-center justify-between sm:justify-start">
-                            <span className="font-medium text-textMain">
+                            <span className="font-medium text-textMain w-full">
                                 {day.label}
                             </span>
-                            <label className="relative inline-flex items-center cursor-pointer ml-auto sm:ml-4">
+                            <label className="relative inline-flex items-center cursor-pointer ml-auto sm:ml-2 shrink-0">
                                 <input
                                     type="checkbox"
                                     className="sr-only peer"
@@ -252,10 +193,10 @@ const WorkingHoursEditor = ({ initialHours, onChange }) => {
                                 intervals.length > 0 ? (
                                     intervals.map((interval, index) => (
                                         <TimeRangeInput
-                                            key={`${day.key}-${index}-${interval}`}
+                                            key={`${day.key}-${index}-${interval}-${Date.now()}`}
                                             dayKey={day.key}
                                             index={index}
-                                            interval={interval}
+                                            interval={interval || "09:00-17:00"}
                                             onIntervalChange={
                                                 handleIntervalChange
                                             }
@@ -267,7 +208,7 @@ const WorkingHoursEditor = ({ initialHours, onChange }) => {
                                 ) : (
                                     <p className="text-sm text-gray-500 italic mb-2">
                                         Día habilitado, pero sin horarios
-                                        definidos.
+                                        definidos. Añade un intervalo.
                                     </p>
                                 )
                             ) : (

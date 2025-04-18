@@ -12,7 +12,6 @@ const ProfileTab = ({ user, onUserUpdate }) => {
         name: user?.name || "",
         email: user?.email || "",
         phone: user?.phone || "",
-        address: user?.address || "",
     })
 
     const handleChange = (e) => {
@@ -30,7 +29,6 @@ const ProfileTab = ({ user, onUserUpdate }) => {
                 ...user,
                 name: form.name,
                 phone: form.phone,
-                address: form.address,
             }
 
             localStorage.setItem("studioTecUser", JSON.stringify(updatedUser))
@@ -104,14 +102,6 @@ const ProfileTab = ({ user, onUserUpdate }) => {
                         placeholder="Ej. 222 123 4567"
                     />
 
-                    <FormField
-                        label="Dirección"
-                        name="address"
-                        value={form.address}
-                        onChange={handleChange}
-                        placeholder="Tu dirección (opcional)"
-                    />
-
                     <div className="flex gap-3 pt-4">
                         <Button
                             type="dark"
@@ -171,10 +161,6 @@ const ProfileTab = ({ user, onUserUpdate }) => {
                         <InfoField
                             label="Teléfono"
                             value={user.phone || "No especificado"}
-                        />
-                        <InfoField
-                            label="Dirección"
-                            value={user.address || "No especificada"}
                         />
                         <InfoField
                             label="Rol"
