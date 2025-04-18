@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import {
     collection,
@@ -20,7 +26,7 @@ import useAuth from "../../features/auth/hooks/useAuth.js"
 import { createAppointmentRequest } from "../../features/booking/services/bookingService.js"
 import { toast } from "react-toastify"
 import { AlertTriangle, Loader2 } from "lucide-react"
-import { useServices } from "../../features/services/hooks/useServices.js"
+import ServicesContext from "../../features/services/context/ServicesContext.js"
 
 const initialFormData = {
     category: "",
@@ -52,7 +58,7 @@ function BookingForm() {
         services: allServices,
         isLoading: isLoadingServices,
         error: servicesError,
-    } = useServices()
+    } = useContext(ServicesContext)
 
     const selectedServiceDetails = useMemo(() => {
         if (!formData.serviceId || !allServices || allServices.length === 0) {

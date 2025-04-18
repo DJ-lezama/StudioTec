@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useContext, useEffect, useMemo, useState } from "react"
 import Button from "../../components/common/Button"
 import { useNavigate } from "react-router-dom"
 import ServiceCreationOverlay from "../../components/services/ServiceCreationOverlay.jsx"
+import ConfirmationModal from "../../components/common/ConfirmationModal.jsx"
 import {
     AlertTriangle,
     Check,
@@ -16,18 +17,12 @@ import {
     X,
 } from "lucide-react"
 import {
-    addDoc,
-    collection,
-    deleteDoc,
-    doc,
-    getDocs,
-    orderBy,
-    query,
-    serverTimestamp,
-    updateDoc,
-} from "firebase/firestore"
-import { db } from "../../../firebaseConfig.js"
-import { useServices } from "../../features/services/hooks/useServices.js"
+    addService,
+    deleteService,
+    updateService,
+    updateServiceStatus,
+} from "../../features/services/servicesService.js"
+import ServicesContext from "../../features/services/context/ServicesContext"
 
 const categoryIcons = {
     Hair: <Scissors className="w-5 h-5" />,
@@ -40,7 +35,8 @@ const ManageServicesScreen = () => {
         services: allServices,
         isLoading: loading,
         error: fetchError,
-    } = useServices()
+        refetchServices,
+    } = useContext(ServicesContext)
 
     const [displayError, setDisplayError] = useState(null)
     const [formError, setFormError] = useState(null)
@@ -54,6 +50,10 @@ const ManageServicesScreen = () => {
     const [showSuccessMessage, setShowSuccessMessage] = useState(false)
     const [successMessage, setSuccessMessage] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
+
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [serviceToDeleteId, setServiceToDeleteId] = useState(null)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const navigate = useNavigate()
 
@@ -145,53 +145,45 @@ const ManageServicesScreen = () => {
     }
 
     const handleToggleStatus = async (id) => {
-        if (isSubmitting) return
         const serviceToToggle = allServices.find((s) => s.serviceID === id)
-        if (!serviceToToggle) return
+        if (!serviceToToggle || isSubmitting) return
 
         setIsSubmitting(true)
-
         const newStatus = !serviceToToggle.isActive
 
         try {
-            const serviceDocRef = doc(db, "services", id)
-            await updateDoc(serviceDocRef, {
-                isActive: newStatus,
-                updatedAt: serverTimestamp(),
-            })
+            await updateServiceStatus(id, newStatus)
             showMessage("Estado del servicio actualizado.")
-            // TODO: Implement a better way to refresh data without full page reload or remount.
-            await fetchServices()
+            refetchServices()
         } catch (err) {
-            console.error("Error toggling service status:", err)
-            showMessage("Error al actualizar el estado.", false)
+            showMessage(err.message || "Error al actualizar el estado.", false)
         } finally {
             setIsSubmitting(false)
         }
     }
 
-    const handleDeleteService = async (id) => {
-        if (isSubmitting) return
-        if (
-            !window.confirm(
-                "¿Estás seguro de que deseas eliminar este servicio de forma permanente?",
-            )
-        ) {
-            return
-        }
+    const promptDeleteService = (id) => {
+        setServiceToDeleteId(id)
+        setIsModalOpen(true)
+    }
 
+    const confirmDeleteService = async () => {
+        if (!serviceToDeleteId || isDeleting) return
+
+        setIsDeleting(true)
         setIsSubmitting(true)
+
         try {
-            const serviceDocRef = doc(db, "services", id)
-            await deleteDoc(serviceDocRef)
+            await deleteService(serviceToDeleteId)
             showMessage("Servicio eliminado correctamente.")
-            // TODO: Refresh logic needed here too.
-            await fetchServices() // Temporary
+            refetchServices()
         } catch (err) {
-            console.error("Error deleting service:", err)
-            showMessage("Error al eliminar el servicio.", false)
+            showMessage(err.message || "Error al eliminar el servicio.", false)
         } finally {
+            setIsDeleting(false)
             setIsSubmitting(false)
+            setIsModalOpen(false)
+            setServiceToDeleteId(null)
         }
     }
 
@@ -199,47 +191,20 @@ const ManageServicesScreen = () => {
         setIsSubmitting(true)
         setFormError(null)
 
-        const dataPayload = {
-            ...serviceData,
-            updatedAt: serverTimestamp(),
-        }
-
-        if (serviceToEdit) {
-            try {
-                const serviceDocRef = doc(
-                    db,
-                    "services",
-                    serviceToEdit.serviceID,
-                )
-                await updateDoc(serviceDocRef, dataPayload)
+        try {
+            if (serviceToEdit) {
+                await updateService(serviceToEdit.serviceID, serviceData)
                 showMessage("Servicio actualizado correctamente.")
-                handleCloseForm()
-                // TODO: Refresh logic
-                await fetchServices() // Temporary
-            } catch (err) {
-                console.error("Error updating service:", err)
-                showMessage(`Error al actualizar: ${err.message}`, false)
-            } finally {
-                setIsSubmitting(false)
-            }
-        } else {
-            try {
-                const servicesCollectionRef = collection(db, "services")
-                await addDoc(servicesCollectionRef, {
-                    ...dataPayload,
-                    isActive: true,
-                    createdAt: serverTimestamp(),
-                })
+            } else {
+                await addService(serviceData)
                 showMessage("Nuevo servicio añadido correctamente.")
-                handleCloseForm()
-                // TODO: Refresh logic
-                await fetchServices() // Temporary
-            } catch (err) {
-                console.error("Error adding service:", err)
-                showMessage(`Error al añadir: ${err.message}`, false)
-            } finally {
-                setIsSubmitting(false)
             }
+            handleCloseForm()
+            refetchServices()
+        } catch (err) {
+            showMessage(err.message || "Ocurrió un error al guardar.", false)
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
@@ -259,40 +224,6 @@ const ManageServicesScreen = () => {
         setShowAddOverlay(false)
         setServiceToEdit(null)
         setFormError(null)
-    }
-
-    const fetchServices = async () => {
-        setLoading(true)
-        setDisplayError(null)
-        // setAllServices([]); // This would now come from the hook, cannot set directly
-        try {
-            // This duplicates the logic in the hook - ideally call a refresh function from the hook
-            const servicesCollectionRef = collection(db, "services")
-            const q = query(servicesCollectionRef, orderBy("createdAt", "desc"))
-            const querySnapshot = await getDocs(q)
-            const servicesData = querySnapshot.docs.map((doc) => ({
-                serviceID: doc.id,
-                ...doc.data(),
-                basePrice:
-                    typeof doc.data().basePrice === "number"
-                        ? doc.data().basePrice
-                        : parseFloat(doc.data().basePrice) || 0,
-                duration:
-                    typeof doc.data().duration === "number"
-                        ? doc.data().duration
-                        : parseInt(doc.data().duration, 10) || 0,
-            }))
-            console.warn(
-                "Temporary fetchServices called in component. Ideally, use a hook refresh function.",
-            )
-        } catch (err) {
-            console.error("Error fetching services:", err)
-            setDisplayError(
-                "No se pudieron cargar los servicios. Intenta recargar la página.",
-            )
-        } finally {
-            setLoading(false)
-        }
     }
 
     return (
@@ -586,7 +517,7 @@ const ManageServicesScreen = () => {
                                             type="light"
                                             className="text-xs px-2 py-1 text-red-600 hover:bg-red-50 disabled:opacity-50"
                                             onClick={() =>
-                                                handleDeleteService(
+                                                promptDeleteService(
                                                     service.serviceID,
                                                 )
                                             }
@@ -639,6 +570,19 @@ const ManageServicesScreen = () => {
                     formError={formError}
                 />
             )}
+
+            {/* Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onConfirm={confirmDeleteService}
+                title="Confirmar Eliminación"
+                message="¿Estás seguro de que deseas eliminar este servicio? Esta acción no se puede deshacer."
+                confirmText="Sí, eliminar"
+                cancelText="Cancelar"
+                confirmButtonType="danger"
+                isConfirming={isDeleting}
+            />
         </div>
     )
 }
