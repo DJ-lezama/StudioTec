@@ -3,6 +3,7 @@ import React, {
     useContext,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
@@ -44,6 +45,7 @@ const initialFormData = {
 function BookingForm() {
     const [step, setStep] = useState(1)
     const [formData, setFormData] = useState(initialFormData)
+    const prefillProcessedRef = useRef(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [submitError, setSubmitError] = useState(null)
     const navigate = useNavigate()
@@ -124,71 +126,67 @@ function BookingForm() {
 
     useEffect(() => {
         const prefillData = location.state
-        if (
-            prefillData?.serviceId &&
-            prefillData?.stylistId &&
-            !isLoadingStylists &&
-            stylistsList.length > 0 &&
-            !isLoadingServices &&
-            allServices.length > 0
-        ) {
-            const service = allServices.find(
-                (s) => s.serviceID === prefillData.serviceId,
-            )
-            const categoryLabel = service?.category
-            const stylistExists = stylistsList.some(
-                (s) => s.id === prefillData.stylistId,
-            )
+        const hasPrefillServiceId = prefillData?.serviceId
 
-            if (categoryLabel && stylistExists) {
-                console.log(
-                    "Pre-filling form from location state:",
-                    prefillData,
+        if (hasPrefillServiceId && !prefillProcessedRef.current) {
+            if (!isLoadingServices && allServices?.length > 0) {
+                const service = allServices.find(
+                    (s) => s.serviceID === prefillData.serviceId,
                 )
-                setFormData((prevData) => ({
-                    ...initialFormData,
-                    category: categoryLabel,
-                    serviceId: prefillData.serviceId,
-                    stylistId: prefillData.stylistId,
-                    name: prevData.name || currentUser?.name || "",
-                    email: prevData.email || currentUser?.email || "",
-                    phone: prevData.phone || currentUser?.phone || "",
-                }))
-                setStep(3)
-                toast.info(
-                    "Servicio y estilista seleccionados desde tu historial.",
-                )
-            } else {
-                console.warn(
-                    "Could not pre-fill: Service/category not found or stylist not available.",
-                    { categoryLabel, stylistExists, service },
-                )
-                setFormData((prevData) => ({
-                    ...prevData,
-                    name: prevData.name || currentUser?.name || "",
-                    email: prevData.email || currentUser?.email || "",
-                    phone: prevData.phone || currentUser?.phone || "",
-                }))
+
+                if (service?.category) {
+                    console.log(
+                        "Pre-filling form from location state (serviceId):",
+                        prefillData,
+                    )
+                    setFormData((prevData) => ({
+                        ...initialFormData,
+                        category: service.category,
+                        serviceId: prefillData.serviceId,
+                        name: prevData.name || currentUser?.name || "",
+                        email: prevData.email || currentUser?.email || "",
+                        phone: prevData.phone || currentUser?.phone || "",
+                    }))
+                    setStep(2)
+                    toast.info("Servicio seleccionado.")
+                    prefillProcessedRef.current = true
+                    navigate(location.pathname, { replace: true, state: {} })
+                } else {
+                    console.warn(
+                        "Could not pre-fill: Service ID from state not found or missing category.",
+                        { prefillData, service },
+                    )
+                    prefillProcessedRef.current = true
+                    navigate(location.pathname, { replace: true, state: {} })
+                }
             }
-            navigate(location.pathname, { replace: true, state: {} })
-        } else if (!prefillData?.serviceId && currentUser && step === 1) {
+        }
+
+        if (
+            currentUser &&
+            !formData.name &&
+            !formData.email &&
+            step === 1 &&
+            !hasPrefillServiceId
+        ) {
+            console.log("Pre-filling user details for logged-in user.")
             setFormData((prevData) => ({
                 ...prevData,
-                name: prevData.name || currentUser?.name || "",
-                email: prevData.email || currentUser?.email || "",
-                phone: prevData.phone || currentUser?.phone || "",
+                name: currentUser.name || "",
+                email: currentUser.email || "",
+                phone: currentUser.phone || "",
             }))
         }
     }, [
         location.state,
         currentUser,
-        step,
-        navigate,
-        isLoadingStylists,
-        stylistsList,
         isLoadingServices,
         allServices,
+        navigate,
         location.pathname,
+        step,
+        formData.name,
+        formData.email,
     ])
 
     const handleFormUpdate = useCallback((newData) => {

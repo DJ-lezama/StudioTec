@@ -141,6 +141,7 @@ function CatalogScreen() {
                             {filteredServices.map((service) => (
                                 <ServiceCard
                                     key={service.serviceID}
+                                    serviceId={service.serviceID}
                                     title={service.name}
                                     description={service.description}
                                     price={service.basePrice}

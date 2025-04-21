@@ -1,8 +1,28 @@
 import React from "react"
+import { useNavigate } from "react-router-dom"
 
-function ServiceCard({ title, description, price, duration, imageUrl }) {
+function ServiceCard({
+    serviceId,
+    title,
+    description,
+    price,
+    duration,
+    imageUrl,
+}) {
+    const navigate = useNavigate()
     const PLACEHOLDER_IMAGE =
         "https://i0.wp.com/port2flavors.com/wp-content/uploads/2022/07/placeholder-614.png?fit=1200%2C800&ssl=1"
+
+    const handleReserveClick = () => {
+        if (serviceId) {
+            navigate("/agendar", { state: { serviceId: serviceId } })
+        } else {
+            console.warn(
+                "ServiceCard: serviceId is missing, cannot navigate to booking.",
+            )
+            navigate("/agendar")
+        }
+    }
 
     return (
         <div className="bg-primaryLight rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
@@ -50,7 +70,10 @@ function ServiceCard({ title, description, price, duration, imageUrl }) {
                     <span className="text-secondary font-bold">
                         ${price} MXN
                     </span>
-                    <button className="text-sm bg-textMain text-white rounded-full px-4 py-1.5 hover:bg-secondary transition-colors duration-300">
+                    <button
+                        onClick={handleReserveClick}
+                        className="text-sm bg-textMain text-white rounded-full px-4 py-1.5 hover:bg-secondary transition-colors duration-300"
+                    >
                         Reservar
                     </button>
                 </div>
