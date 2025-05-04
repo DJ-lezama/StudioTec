@@ -76,3 +76,7 @@ You need to run both the backend and frontend servers concurrently.
    This will start the Vite development server for the frontend, usually on `http://localhost:5173`.
 
 4. **Open your browser** and navigate to the frontend URL provided in the terminal (e.g., `http://localhost:5173`).
+
+If you want to see how it works, you can find it here: https://youtu.be/8Wunvl-wEMk
+
+
